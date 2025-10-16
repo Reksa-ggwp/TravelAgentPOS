@@ -25,6 +25,7 @@
                 android:id="@+id/btnMenu"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
+                android:contentDescription="TODO"
                 android:src="@android:drawable/ic_menu_sort_by_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:tint="#FFFFFF" />

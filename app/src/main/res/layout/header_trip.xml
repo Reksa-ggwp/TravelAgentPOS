@@ -4,60 +4,63 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="12dp"
-    android:background="?attr/selectableItemBackground">
+    android:background="#2196F3">
 
     <TextView
-        android:id="@+id/tvNo"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:text="1"
+        android:text="No."
         android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
         android:gravity="center" />
 
     <TextView
-        android:id="@+id/tvPlate"
         android:layout_width="0dp"
         android:layout_weight="1.5"
         android:layout_height="wrap_content"
-        android:text="B 1234 XX"
+        android:text="Nopol"
         android:textSize="14sp"
-        android:paddingStart="8dp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvRoute"
-        android:layout_width="0dp"
-        android:layout_weight="2"
-        android:layout_height="wrap_content"
-        android:text="Route"
-        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
         android:paddingStart="8dp" />
 
     <TextView
-        android:id="@+id/tvDate"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:text="Rute"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:paddingStart="8dp" />
+
+    <TextView
         android:layout_width="0dp"
         android:layout_weight="1.5"
         android:layout_height="wrap_content"
-        android:text="Date"
-        android:textSize="14sp" />
+        android:text="Tanggal"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF" />
 
     <TextView
-        android:id="@+id/tvDriver"
         android:layout_width="0dp"
         android:layout_weight="1.5"
         android:layout_height="wrap_content"
-        android:text="Driver"
-        android:textSize="14sp" />
+        android:text="Sopir"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF" />
 
     <TextView
-        android:id="@+id/tvAvailable"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="10"
+        android:text="Sisa"
         android:textSize="14sp"
-        android:gravity="center"
-        android:textColor="#4CAF50"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:gravity="center" />
 
 </LinearLayout>
