@@ -1,13 +1,8 @@
-// TripDetailsActivity.kt - COMPLETE VERSION
-// Location: app/src/main/java/com/travelagent/pos/ui/TripDetailsActivity.kt
-// REPLACE ENTIRE FILE
-
 package com.travelagent.pos.ui
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import android.widget.*
@@ -15,7 +10,6 @@ import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Seat
 import com.travelagent.pos.data.Trip
-import com.travelagent.pos.data.Customer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,7 +21,6 @@ class TripDetailsActivity : AppCompatActivity() {
     private var tripId: Int = 0
     private lateinit var trip: Trip
     private var seats = mutableListOf<Seat>()
-    private val seatButtons = mutableMapOf<Int, Button>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,11 +29,8 @@ class TripDetailsActivity : AppCompatActivity() {
         db = AppDatabase.getDatabase(this)
         tripId = intent.getIntExtra("tripId", 0)
 
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
-        val btnInformDriver = findViewById<Button>(R.id.btnInformDriver)
-
-        btnBack.setOnClickListener { finish() }
-        btnInformDriver.setOnClickListener { sendToDriver() }
+        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
+        findViewById<Button>(R.id.btnInformDriver).setOnClickListener { sendToDriver() }
 
         loadTripDetails()
     }
@@ -51,26 +41,20 @@ class TripDetailsActivity : AppCompatActivity() {
             seats = db.seatDao().getSeatsByTrip(tripId).toMutableList()
 
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
-            val tvTripInfo = findViewById<TextView>(R.id.tvTripInfo)
-            tvTripInfo.text = """
+            findViewById<TextView>(R.id.tvTripInfo).text = """
                 Asal & Tujuan: ${trip.asal} → ${trip.tujuan}
                 Tanggal Keberangkatan: ${sdf.format(Date(trip.tanggal))}
                 Nama Sopir: ${trip.namaSopir}
                 Nomor Polisi Kendaraan: ${trip.nomorPolisi}
             """.trimIndent()
 
-            // Setup seats with image orientation
             setupSeatsLayout()
         }
     }
 
     private fun setupSeatsLayout() {
-        // Clear existing views
-        seatButtons.clear()
-
-        // Get layouts for each row
         val row1 = findViewById<LinearLayout>(R.id.rowSeat1)
-        val row2 = findViewById<LinearLayout>(R.id.rowSeat2Pintu)
+        val row2 = findViewById<LinearLayout>(R.id.rowSeat2)
         val row3 = findViewById<LinearLayout>(R.id.rowSeat3)
         val row4 = findViewById<LinearLayout>(R.id.rowSeat4)
 
@@ -79,25 +63,22 @@ class TripDetailsActivity : AppCompatActivity() {
         row3.removeAllViews()
         row4.removeAllViews()
 
-        // Row 1: Seat 1, Empty space, SUPIR icon
+        // Row 1: 1 | X | Supir
         addSeatButton(row1, 1)
-        addSpacerView(row1) // Empty space
-        addDriverIcon(row1)
+        addPlaceholder(row1, "X")
+        addPlaceholder(row1, "Supir")
 
-        // Row 2: PINTU label, Seat 4, 3, 2
-        addLabel(row2, "PINTU")
+        // Row 2: 4 | 3 | 2
         addSeatButton(row2, 4)
         addSeatButton(row2, 3)
         addSeatButton(row2, 2)
 
-        // Row 3: JALAN label, Seat 7, 6, 5
-        addLabel(row3, "JALAN")
+        // Row 3: 7 | 6 | 5
         addSeatButton(row3, 7)
         addSeatButton(row3, 6)
         addSeatButton(row3, 5)
 
-        // Row 4: BAGASI label, Seat 10, 9, 8
-        addLabel(row4, "BAGASI")
+        // Row 4: 10 | 9 | 8
         addSeatButton(row4, 10)
         addSeatButton(row4, 9)
         addSeatButton(row4, 8)
@@ -112,69 +93,43 @@ class TripDetailsActivity : AppCompatActivity() {
                 weight = 1f
                 setMargins(4, 4, 4, 4)
             }
-            textSize = 18f
-            updateSeatButtonColor(this, seat)
+            textSize = 20f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+            when (seat.status) {
+                "available" -> {
+                    setBackgroundColor(android.graphics.Color.GREEN)
+                    setTextColor(android.graphics.Color.WHITE)
+                }
+                "booked" -> {
+                    setBackgroundColor(android.graphics.Color.parseColor("#FFA500"))
+                    setTextColor(android.graphics.Color.WHITE)
+                }
+                "paid" -> {
+                    setBackgroundColor(android.graphics.Color.RED)
+                    setTextColor(android.graphics.Color.WHITE)
+                }
+            }
+
             setOnClickListener { showSeatOptions(seat) }
         }
 
-        seatButtons[seatNumber] = btn
         row.addView(btn)
     }
 
-    private fun addSpacerView(row: LinearLayout) {
-        val spacer = View(this).apply {
-            layoutParams = LinearLayout.LayoutParams(0, 150).apply {
-                weight = 1f
-            }
-        }
-        row.addView(spacer)
-    }
-
-    private fun addDriverIcon(row: LinearLayout) {
-        val driverIcon = TextView(this).apply {
-            text = "SUPIR"
+    private fun addPlaceholder(row: LinearLayout, label: String) {
+        val placeholder = TextView(this).apply {
+            text = label
             layoutParams = LinearLayout.LayoutParams(0, 150).apply {
                 weight = 1f
                 setMargins(4, 4, 4, 4)
             }
             gravity = android.view.Gravity.CENTER
-            textSize = 14f
+            textSize = 18f
             setBackgroundColor(android.graphics.Color.LTGRAY)
             setTextColor(android.graphics.Color.BLACK)
         }
-        row.addView(driverIcon)
-    }
-
-    private fun addLabel(row: LinearLayout, labelText: String) {
-        val label = TextView(this).apply {
-            text = labelText
-            layoutParams = LinearLayout.LayoutParams(120, 150).apply {
-                setMargins(4, 4, 4, 4)
-            }
-            gravity = android.view.Gravity.CENTER
-            textSize = 12f
-            setBackgroundColor(android.graphics.Color.DKGRAY)
-            setTextColor(android.graphics.Color.WHITE)
-            rotation = 0f
-        }
-        row.addView(label)
-    }
-
-    private fun updateSeatButtonColor(btn: Button, seat: Seat) {
-        when (seat.status) {
-            "available" -> {
-                btn.setBackgroundColor(android.graphics.Color.GREEN)
-                btn.setTextColor(android.graphics.Color.WHITE)
-            }
-            "booked" -> {
-                btn.setBackgroundColor(android.graphics.Color.parseColor("#FFA500"))
-                btn.setTextColor(android.graphics.Color.WHITE)
-            }
-            "paid" -> {
-                btn.setBackgroundColor(android.graphics.Color.RED)
-                btn.setTextColor(android.graphics.Color.WHITE)
-            }
-        }
+        row.addView(placeholder)
     }
 
     private fun showSeatOptions(seat: Seat) {
@@ -222,7 +177,7 @@ class TripDetailsActivity : AppCompatActivity() {
                         ))
                         Toast.makeText(
                             this@TripDetailsActivity,
-                            "Kursi ${seat.nomorKursi} ditempati ${selectedCustomer.namaLengkap}",
+                            "Kursi ${seat.nomorKursi}: ${selectedCustomer.namaLengkap}",
                             Toast.LENGTH_SHORT
                         ).show()
                         loadTripDetails()
@@ -238,39 +193,22 @@ class TripDetailsActivity : AppCompatActivity() {
         val statusLabels = arrayOf("Kosong", "Booked", "Paid")
 
         AlertDialog.Builder(this)
-            .setTitle("Pilih Status Kursi ${seat.nomorKursi}")
-            .setItems(statusLabels) { _, statusIdx ->
+            .setTitle("Status Kursi ${seat.nomorKursi}")
+            .setItems(statusLabels) { _, idx ->
                 GlobalScope.launch(Dispatchers.Main) {
-                    db.seatDao().update(seat.copy(status = statusOptions[statusIdx]))
-                    Toast.makeText(
-                        this@TripDetailsActivity,
-                        "Status kursi ${seat.nomorKursi} diubah menjadi ${statusLabels[statusIdx]}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    db.seatDao().update(seat.copy(status = statusOptions[idx]))
                     loadTripDetails()
                 }
             }
-            .setNegativeButton("Batal", null)
             .show()
     }
 
     private fun clearSeat(seat: Seat) {
-        AlertDialog.Builder(this)
-            .setTitle("Kosongkan Kursi ${seat.nomorKursi}?")
-            .setMessage("Yakin ingin mengosongkan kursi ini?")
-            .setPositiveButton("Ya") { _, _ ->
-                GlobalScope.launch(Dispatchers.Main) {
-                    db.seatDao().update(seat.copy(customerId = null, status = "available"))
-                    Toast.makeText(
-                        this@TripDetailsActivity,
-                        "Kursi ${seat.nomorKursi} telah dikosongkan",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    loadTripDetails()
-                }
-            }
-            .setNegativeButton("Batal", null)
-            .show()
+        GlobalScope.launch(Dispatchers.Main) {
+            db.seatDao().update(seat.copy(customerId = null, status = "available"))
+            Toast.makeText(this@TripDetailsActivity, "Kursi ${seat.nomorKursi} dikosongkan", Toast.LENGTH_SHORT).show()
+            loadTripDetails()
+        }
     }
 
     private fun sendToDriver() {
@@ -284,46 +222,31 @@ class TripDetailsActivity : AppCompatActivity() {
                 return@launch
             }
 
-            val message = buildDriverMessage(bookedSeats)
-
-            val intent = Intent().apply {
-                action = Intent.ACTION_VIEW
-                data = Uri.parse("https://wa.me/${trip.nomorTeleponSopir.replace("+", "").replace("-", "").replace(" ", "")}?text=${Uri.encode(message)}")
+            val passengers = mutableListOf<String>()
+            bookedSeats.forEach { seat ->
+                val customer = seat.customerId?.let { db.customerDao().getCustomerById(it) }
+                if (customer != null) {
+                    passengers.add("Kursi ${seat.nomorKursi}: ${customer.namaLengkap} - ${customer.nomorTelepon} - ${customer.alamat}")
+                }
             }
 
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@TripDetailsActivity,
-                    "WhatsApp tidak terinstall",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    private suspend fun buildDriverMessage(bookedSeats: List<Seat>): String {
-        val passengers = mutableListOf<String>()
-
-        bookedSeats.forEach { seat ->
-            val customer = seat.customerId?.let { db.customerDao().getCustomerById(it) }
-            if (customer != null) {
-                passengers.add("Kursi ${seat.nomorKursi}: ${customer.namaLengkap} - ${customer.nomorTelepon} - ${customer.alamat}")
-            }
-        }
-
-        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
-        return """
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
+            val message = """
 Sopir ${trip.namaSopir},
 
-Berikut data penumpang perjalanan ${trip.asal} → ${trip.tujuan} (${sdf.format(Date(trip.tanggal))}):
+Data penumpang ${trip.asal} → ${trip.tujuan} (${sdf.format(Date(trip.tanggal))}):
 
 ${passengers.joinToString("\n")}
 
 Nomor Polisi: ${trip.nomorPolisi}
-Total Penumpang: ${bookedSeats.size}
-        """.trimIndent()
+Total: ${bookedSeats.size} penumpang
+            """.trimIndent()
+
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(
+                "https://wa.me/${trip.nomorTeleponSopir.replace(Regex("[^0-9]"), "")}?text=${Uri.encode(message)}"
+            ))
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {

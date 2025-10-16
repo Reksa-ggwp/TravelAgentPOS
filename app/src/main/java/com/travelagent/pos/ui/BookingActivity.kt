@@ -22,6 +22,7 @@ class BookingActivity : AppCompatActivity() {
     private var selectedCustomer: Customer? = null
     private var selectedTrip: Trip? = null
     private var selectedSeat: Seat? = null
+    private var allSeats = listOf<Seat>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,26 +30,28 @@ class BookingActivity : AppCompatActivity() {
 
         db = AppDatabase.getDatabase(this)
 
-        val btnSelectCustomer = findViewById<Button>(R.id.btnSelectCustomer)
-        val btnSelectTrip = findViewById<Button>(R.id.btnSelectTrip)
-        val btnSelectSeat = findViewById<Button>(R.id.btnSelectSeat)
-        val btnBooking = findViewById<Button>(R.id.btnBooking)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
+        findViewById<Button>(R.id.btnSelectCustomer).setOnClickListener { selectCustomer() }
+        findViewById<Button>(R.id.btnSelectTrip).setOnClickListener { selectTrip() }
+        findViewById<Button>(R.id.btnCreateBooking).setOnClickListener { createBooking() }
 
-        btnSelectCustomer.setOnClickListener { selectCustomerWithSearch() }
-        btnSelectTrip.setOnClickListener { selectTripImproved() }
-        btnSelectSeat.setOnClickListener { selectSeatImproved() }
-        btnBooking.setOnClickListener { createBooking() }
-        btnBack.setOnClickListener { finish() }
+        // Initially disable seat selection
+        disableSeatsSelection()
     }
 
-    private fun selectCustomerWithSearch() {
+    private fun selectCustomer() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_customer, null)
         val etSearch = dialogView.findViewById<EditText>(R.id.etSearchCustomer)
         val lvCustomers = dialogView.findViewById<ListView>(R.id.lvCustomers)
 
         GlobalScope.launch(Dispatchers.Main) {
             val customers = db.customerDao().getAllCustomers().toMutableList()
+
+            if (customers.isEmpty()) {
+                Toast.makeText(this@BookingActivity, "Belum ada pelanggan. Tambahkan terlebih dahulu.", Toast.LENGTH_LONG).show()
+                return@launch
+            }
+
             val customerNames = customers.map { it.namaLengkap }.toMutableList()
             val adapter = ArrayAdapter(
                 this@BookingActivity,
@@ -78,10 +81,8 @@ class BookingActivity : AppCompatActivity() {
             })
 
             lvCustomers.setOnItemClickListener { _, _, position, _ ->
-                val filteredCustomers = customers.filter { customer ->
-                    customerNames.contains(customer.namaLengkap)
-                }
-                selectedCustomer = filteredCustomers.getOrNull(position)
+                val displayedName = adapter.getItem(position)
+                selectedCustomer = customers.find { it.namaLengkap == displayedName }
                 findViewById<Button>(R.id.btnSelectCustomer).text = "✓ ${selectedCustomer?.namaLengkap}"
                 dialog.dismiss()
             }
@@ -90,100 +91,96 @@ class BookingActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectTripImproved() {
+    private fun selectTrip() {
         GlobalScope.launch(Dispatchers.Main) {
             val trips = db.tripDao().getAllTrips()
 
             if (trips.isEmpty()) {
-                Toast.makeText(this@BookingActivity, "Belum ada perjalanan", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BookingActivity, "Belum ada perjalanan tersedia", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
-            val tripDisplay = mutableListOf<String>()
-            trips.forEach { trip ->
-                tripDisplay.add("${trip.nomorPolisi} | ${trip.asal} → ${trip.tujuan}")
-            }
+            val tripDisplay = trips.map { "${it.nomorPolisi} | ${it.asal} → ${it.tujuan}" }.toTypedArray()
 
             AlertDialog.Builder(this@BookingActivity)
                 .setTitle("Pilih Perjalanan")
-                .setItems(tripDisplay.toTypedArray()) { _, which ->
+                .setItems(tripDisplay) { _, which ->
                     selectedTrip = trips[which]
                     selectedSeat = null // Reset seat selection
                     findViewById<Button>(R.id.btnSelectTrip).text = "✓ ${tripDisplay[which]}"
+                    loadSeats()
                 }
                 .setNegativeButton("Batal", null)
                 .show()
         }
     }
 
-    private fun selectSeatImproved() {
-        if (selectedTrip == null) {
-            Toast.makeText(this, "Pilih perjalanan terlebih dahulu", Toast.LENGTH_SHORT).show()
-            return
-        }
+    private fun loadSeats() {
+        if (selectedTrip == null) return
 
         GlobalScope.launch(Dispatchers.Main) {
-            val seats = db.seatDao().getSeatsByTrip(selectedTrip!!.id)
-            val availableSeats = seats.filter { it.status == "available" }
-
-            if (availableSeats.isEmpty()) {
-                Toast.makeText(this@BookingActivity, "Tidak ada kursi tersedia", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            // Create visual seat selector
-            showVisualSeatSelector(availableSeats, seats)
+            allSeats = db.seatDao().getSeatsByTrip(selectedTrip!!.id)
+            setupSeatsLayout()
         }
     }
 
-    private fun showVisualSeatSelector(availableSeats: List<Seat>, allSeats: List<Seat>) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_seat_selector, null)
+    private fun setupSeatsLayout() {
+        val row1 = findViewById<LinearLayout>(R.id.seatRow1)
+        val row2 = findViewById<LinearLayout>(R.id.seatRow2)
+        val row3 = findViewById<LinearLayout>(R.id.seatRow3)
+        val row4 = findViewById<LinearLayout>(R.id.seatRow4)
 
-        val row1 = dialogView.findViewById<LinearLayout>(R.id.selectorRow1)
-        val row2 = dialogView.findViewById<LinearLayout>(R.id.selectorRow2)
-        val row3 = dialogView.findViewById<LinearLayout>(R.id.selectorRow3)
-        val row4 = dialogView.findViewById<LinearLayout>(R.id.selectorRow4)
+        row1.removeAllViews()
+        row2.removeAllViews()
+        row3.removeAllViews()
+        row4.removeAllViews()
 
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("Pilih Kursi - ${selectedTrip!!.nomorPolisi}")
-            .setView(dialogView)
-            .setNegativeButton("Batal", null)
-            .create()
+        // Row 1: 1 | X | Supir
+        addSeatButton(row1, 1)
+        addPlaceholder(row1, "X")
+        addPlaceholder(row1, "Supir")
 
-        // Add seats to rows matching the layout
-        addSeatToRow(row1, allSeats.find { it.nomorKursi == 1 }!!, availableSeats, dialog)
+        // Row 2: 4 | 3 | 2
+        addSeatButton(row2, 4)
+        addSeatButton(row2, 3)
+        addSeatButton(row2, 2)
 
-        listOf(4, 3, 2).forEach { num ->
-            addSeatToRow(row2, allSeats.find { it.nomorKursi == num }!!, availableSeats, dialog)
-        }
+        // Row 3: 7 | 6 | 5
+        addSeatButton(row3, 7)
+        addSeatButton(row3, 6)
+        addSeatButton(row3, 5)
 
-        listOf(7, 6, 5).forEach { num ->
-            addSeatToRow(row3, allSeats.find { it.nomorKursi == num }!!, availableSeats, dialog)
-        }
-
-        listOf(10, 9, 8).forEach { num ->
-            addSeatToRow(row4, allSeats.find { it.nomorKursi == num }!!, availableSeats, dialog)
-        }
-
-        dialog.show()
+        // Row 4: 10 | 9 | 8
+        addSeatButton(row4, 10)
+        addSeatButton(row4, 9)
+        addSeatButton(row4, 8)
     }
 
-    private fun addSeatToRow(row: LinearLayout, seat: Seat, availableSeats: List<Seat>, dialog: AlertDialog) {
+    private fun addSeatButton(row: LinearLayout, seatNumber: Int) {
+        val seat = allSeats.find { it.nomorKursi == seatNumber } ?: return
+
         val btn = Button(this).apply {
-            text = seat.nomorKursi.toString()
+            text = seatNumber.toString()
             layoutParams = LinearLayout.LayoutParams(0, 150).apply {
                 weight = 1f
                 setMargins(4, 4, 4, 4)
             }
-            textSize = 18f
+            textSize = 20f
 
-            if (availableSeats.contains(seat)) {
+            if (seat.status == "available") {
                 setBackgroundColor(android.graphics.Color.GREEN)
                 setTextColor(android.graphics.Color.WHITE)
                 setOnClickListener {
+                    // Deselect previous seat if any
+                    selectedSeat?.let { prevSeat ->
+                        if (prevSeat.nomorKursi != seatNumber) {
+                            setupSeatsLayout() // Refresh to show all available seats
+                        }
+                    }
+
                     selectedSeat = seat
-                    findViewById<Button>(R.id.btnSelectSeat).text = "✓ Kursi ${seat.nomorKursi}"
-                    dialog.dismiss()
+                    setBackgroundColor(android.graphics.Color.parseColor("#4CAF50"))
+                    Toast.makeText(this@BookingActivity, "Kursi $seatNumber dipilih", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 setBackgroundColor(android.graphics.Color.LTGRAY)
@@ -191,17 +188,55 @@ class BookingActivity : AppCompatActivity() {
                 isEnabled = false
             }
         }
+
         row.addView(btn)
     }
 
+    private fun addPlaceholder(row: LinearLayout, label: String) {
+        val placeholder = TextView(this).apply {
+            text = label
+            layoutParams = LinearLayout.LayoutParams(0, 150).apply {
+                weight = 1f
+                setMargins(4, 4, 4, 4)
+            }
+            gravity = android.view.Gravity.CENTER
+            textSize = 18f
+            setBackgroundColor(android.graphics.Color.LTGRAY)
+            setTextColor(android.graphics.Color.BLACK)
+        }
+        row.addView(placeholder)
+    }
+
+    private fun disableSeatsSelection() {
+        findViewById<LinearLayout>(R.id.seatRow1).removeAllViews()
+        findViewById<LinearLayout>(R.id.seatRow2).removeAllViews()
+        findViewById<LinearLayout>(R.id.seatRow3).removeAllViews()
+        findViewById<LinearLayout>(R.id.seatRow4).removeAllViews()
+    }
+
     private fun createBooking() {
-        if (selectedCustomer == null || selectedTrip == null || selectedSeat == null) {
-            Toast.makeText(this, "Pilih pelanggan, perjalanan, dan kursi", Toast.LENGTH_SHORT).show()
+        // Validation
+        if (selectedCustomer == null) {
+            Toast.makeText(this, "⚠️ Pilih pelanggan terlebih dahulu", Toast.LENGTH_SHORT).show()
             return
         }
 
+        if (selectedTrip == null) {
+            Toast.makeText(this, "⚠️ Pilih perjalanan terlebih dahulu", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (selectedSeat == null) {
+            Toast.makeText(this, "⚠️ Pilih kursi terlebih dahulu", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Create booking
         GlobalScope.launch(Dispatchers.Main) {
-            db.seatDao().update(selectedSeat!!.copy(customerId = selectedCustomer!!.id, status = "booked"))
+            db.seatDao().update(selectedSeat!!.copy(
+                customerId = selectedCustomer!!.id,
+                status = "booked"
+            ))
 
             val ticket = Ticket(
                 seatId = selectedSeat!!.id,
@@ -211,6 +246,12 @@ class BookingActivity : AppCompatActivity() {
                 status = "pending"
             )
             val ticketId = db.ticketDao().insert(ticket).toInt()
+
+            Toast.makeText(
+                this@BookingActivity,
+                "✓ Booking berhasil dibuat!",
+                Toast.LENGTH_SHORT
+            ).show()
 
             val intent = Intent(this@BookingActivity, TicketPrintActivity::class.java)
             intent.putExtra("ticketId", ticketId)

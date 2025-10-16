@@ -49,7 +49,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Trip Information Card -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -76,7 +75,6 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Seat Layout - Matching the image orientation -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -90,7 +88,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- Row 1: Seat 1 | X | SUPIR -->
+                    <!-- Row 1: 1 | X | Supir -->
                     <LinearLayout
                         android:id="@+id/rowSeat1"
                         android:layout_width="match_parent"
@@ -98,15 +96,15 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- Row 2: PINTU | Seat 4 | 3 | 2 -->
+                    <!-- Row 2: 4 | 3 | 2 -->
                     <LinearLayout
-                        android:id="@+id/rowSeat2Pintu"
+                        android:id="@+id/rowSeat2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- Row 3: JALAN | Seat 7 | 6 | 5 -->
+                    <!-- Row 3: 7 | 6 | 5 -->
                     <LinearLayout
                         android:id="@+id/rowSeat3"
                         android:layout_width="match_parent"
@@ -114,7 +112,7 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp" />
 
-                    <!-- Row 4: BAGASI | Seat 10 | 9 | 8 -->
+                    <!-- Row 4: 10 | 9 | 8 -->
                     <LinearLayout
                         android:id="@+id/rowSeat4"
                         android:layout_width="match_parent"
@@ -125,7 +123,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Legend -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

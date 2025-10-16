@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -19,7 +20,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" />
+            app:tint="#FFFFFF" />
 
         <TextView
             android:layout_width="0dp"
@@ -37,64 +38,153 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:gravity="center">
+        android:padding="16dp">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Langkah-langkah Booking:"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btnSelectCustomer"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:text="1. Pilih Pelanggan"
-            android:textSize="16sp"
-            android:backgroundTint="#4CAF50"
-            android:layout_marginBottom="12dp" />
+            <!-- Customer Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1. Pilih Pelanggan"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
 
-        <Button
-            android:id="@+id/btnSelectTrip"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:text="2. Pilih Perjalanan"
-            android:textSize="16sp"
-            android:backgroundTint="#2196F3"
-            android:layout_marginBottom="12dp" />
+            <Button
+                android:id="@+id/btnSelectCustomer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pilih Pelanggan"
+                android:textAlignment="textStart"
+                android:drawableRight="@android:drawable/arrow_down_float"
+                android:padding="16dp"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#4CAF50" />
 
-        <Button
-            android:id="@+id/btnSelectSeat"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:text="3. Pilih Kursi"
-            android:textSize="16sp"
-            android:backgroundTint="#9C27B0"
-            android:layout_marginBottom="12dp" />
+            <!-- Trip Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2. Pilih Perjalanan"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="#CCCCCC"
-            android:layout_marginVertical="16dp" />
+            <Button
+                android:id="@+id/btnSelectTrip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pilih Perjalanan"
+                android:textAlignment="textStart"
+                android:drawableRight="@android:drawable/arrow_down_float"
+                android:padding="16dp"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#2196F3" />
 
-        <Button
-            android:id="@+id/btnBooking"
-            android:layout_width="match_parent"
-            android:layout_height="70dp"
-            android:text="🎫 BUAT BOOKING"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:backgroundTint="#FF5722" />
+            <!-- Seat Selection Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3. Pilih Kursi"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp" />
 
-    </LinearLayout>
+            <!-- Seat Layout -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:elevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Row 1: 1 | X | Supir -->
+                    <LinearLayout
+                        android:id="@+id/seatRow1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Row 2: 4 | 3 | 2 -->
+                    <LinearLayout
+                        android:id="@+id/seatRow2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Row 3: 7 | 6 | 5 -->
+                    <LinearLayout
+                        android:id="@+id/seatRow3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Row 4: 10 | 9 | 8 -->
+                    <LinearLayout
+                        android:id="@+id/seatRow4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Legend -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="🟢 Tersedia"
+                    android:textSize="14sp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="⚫ Terisi"
+                    android:textSize="14sp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Create Booking Button -->
+    <Button
+        android:id="@+id/btnCreateBooking"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_margin="16dp"
+        android:text="🎫 BUAT BOOKING"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:backgroundTint="#FF5722" />
 
 </LinearLayout>
