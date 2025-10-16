@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_trips"
+        android:icon="@android:drawable/ic_menu_directions"
+        android:title="Data Perjalanan" />
+    <item
+        android:id="@+id/nav_customers"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Data Pelanggan" />
+    <item
+        android:id="@+id/nav_drivers"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="Data Sopir &amp; Kendaraan" />
+    <item
+        android:id="@+id/nav_booking"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="Booking Baru" />
+</menu>

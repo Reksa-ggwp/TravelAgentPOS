@@ -1,0 +1,3 @@
+<full-backup-content>
+    <include domain="database" path="travel_agent_db"/>
+</full-backup-content>

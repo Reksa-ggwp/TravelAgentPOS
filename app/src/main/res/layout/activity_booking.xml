@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#FF9800"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Booking Baru"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center" />
+
+        <View
+            android:layout_width="48dp"
+            android:layout_height="48dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Langkah-langkah Booking:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnSelectCustomer"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="1. Pilih Pelanggan"
+            android:textSize="16sp"
+            android:backgroundTint="#4CAF50"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnSelectTrip"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="2. Pilih Perjalanan"
+            android:textSize="16sp"
+            android:backgroundTint="#2196F3"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnSelectSeat"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="3. Pilih Kursi"
+            android:textSize="16sp"
+            android:backgroundTint="#9C27B0"
+            android:layout_marginBottom="12dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="#CCCCCC"
+            android:layout_marginVertical="16dp" />
+
+        <Button
+            android:id="@+id/btnBooking"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="🎫 BUAT BOOKING"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FF5722" />
+
+    </LinearLayout>
+
+</LinearLayout>

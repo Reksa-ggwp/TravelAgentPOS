@@ -1,0 +1,5 @@
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="travel_agent_db"/>
+    </cloud-backup>
+</data-extraction-rules>
