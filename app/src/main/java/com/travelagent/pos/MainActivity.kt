@@ -1,4 +1,3 @@
-// NEW MainActivity.kt - Replace entire file
 package com.travelagent.pos
 
 import android.content.Intent
@@ -27,7 +26,10 @@ class MainActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_trips -> {
-                    // Already on trips page
+                    // Already on trips page, just refresh
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, TripListFragment())
+                        .commit()
                 }
                 R.id.nav_customers -> {
                     startActivity(Intent(this, CustomerListActivity::class.java))
@@ -38,12 +40,26 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_booking -> {
                     startActivity(Intent(this, BookingActivity::class.java))
                 }
+                R.id.nav_export -> {
+                    startActivity(Intent(this, ExportActivity::class.java))
+                }
+                R.id.nav_backup -> {
+                    startActivity(Intent(this, BackupRestoreActivity::class.java))
+                }
             }
             drawerLayout.closeDrawers()
             true
         }
 
         // Load TripListFragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, TripListFragment())
+            .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh fragment when returning to refresh trip list after edit
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, TripListFragment())
             .commit()

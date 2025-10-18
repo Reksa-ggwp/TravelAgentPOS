@@ -66,6 +66,18 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
+        <!-- Export Activity -->
+        <activity
+            android:name=".ui.ExportActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- Backup & Restore Activity -->
+        <activity
+            android:name=".ui.BackupRestoreActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
         <!-- Booking & Ticket Activities -->
         <activity
             android:name=".ui.BookingActivity"
@@ -76,6 +88,8 @@
             android:name=".ui.TicketPrintActivity"
             android:exported="false"
             android:parentActivityName=".ui.BookingActivity" />
+
+        <activity android:name=".ui.GenerateSampleDataActivity" android:exported="true" />
 
         <!-- FileProvider for sharing files (optional, for future Excel/PDF export) -->
         <provider

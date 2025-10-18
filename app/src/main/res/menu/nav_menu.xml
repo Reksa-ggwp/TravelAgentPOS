@@ -16,4 +16,14 @@
         android:id="@+id/nav_booking"
         android:icon="@android:drawable/ic_menu_add"
         android:title="Booking Baru" />
+
+    <!-- NEW ITEMS -->
+    <item
+        android:id="@+id/nav_export"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="Export Data" />
+    <item
+        android:id="@+id/nav_backup"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="Backup &amp; Restore" />
 </menu>

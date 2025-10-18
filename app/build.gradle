@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.travelagent.pos"
-        minSdk 24
+        minSdk 26  // Changed from 24 to 26 for Apache POI compatibility
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -58,6 +58,8 @@ dependencies {
 
     // Drawer Layout
     implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
+
+    // No external library needed for CSV export - using native Java FileWriter
 
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'

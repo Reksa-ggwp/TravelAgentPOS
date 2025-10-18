@@ -10,7 +10,7 @@
         android:id="@+id/tvNo"
         android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:text="1"
+        android:text="@string/_1"
         android:textSize="14sp"
         android:gravity="center" />
 
@@ -19,8 +19,9 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:text="B 1234 ABC"
+        android:text="@string/placeholder_nopol"
         android:textSize="14sp"
-        android:paddingStart="8dp" />
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp" />
 
 </LinearLayout>

@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Travel Agent POS</string>
+    <string name="label_no">No.</string>
+    <string name="label_nopol">Nopol</string>
+    <string name="label_rute">Rute</string>
+    <string name="label_tanggal">Tanggal</string>
+    <string name="label_sopir">Sopir</string>
+    <string name="label_sisa">Sisa</string>
+    <string name="_1">1</string>
+    <string name="placeholder_nopol">B 1234 ABC</string>
 </resources>

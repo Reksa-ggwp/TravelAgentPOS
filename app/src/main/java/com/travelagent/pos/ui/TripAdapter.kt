@@ -1,8 +1,10 @@
 package com.travelagent.pos.ui
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.travelagent.pos.R
 import com.travelagent.pos.data.Trip
@@ -43,7 +45,54 @@ class TripAdapter(
                 tvAvailable.text = available.toString()
             }
 
+            // Regular click - open details
             itemView.setOnClickListener { onItemClick(trip) }
+
+            // Long click - show edit/delete options
+            itemView.setOnLongClickListener {
+                showTripOptions(trip)
+                true
+            }
+        }
+
+        private fun showTripOptions(trip: Trip) {
+            val options = arrayOf("Edit", "Hapus")
+            AlertDialog.Builder(itemView.context)
+                .setTitle("${trip.asal} → ${trip.tujuan}")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> editTrip(trip)
+                        1 -> deleteTrip(trip)
+                    }
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
+
+        private fun editTrip(trip: Trip) {
+            val intent = Intent(itemView.context, AddTripActivity::class.java)
+            intent.putExtra("tripId", trip.id)
+            itemView.context.startActivity(intent)
+        }
+
+        private fun deleteTrip(trip: Trip) {
+            AlertDialog.Builder(itemView.context)
+                .setTitle("Hapus Perjalanan?")
+                .setMessage("Yakin ingin menghapus perjalanan ${trip.asal} → ${trip.tujuan}?\n\nSemua data kursi dan booking akan ikut terhapus.")
+                .setPositiveButton("Hapus") { _, _ ->
+                    GlobalScope.launch(Dispatchers.Main) {
+                        db.tripDao().delete(trip)
+                        trips.remove(trip)
+                        notifyDataSetChanged()
+                        android.widget.Toast.makeText(
+                            itemView.context,
+                            "✓ Perjalanan dihapus",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                .setNegativeButton("Batal", null)
+                .show()
         }
     }
 
