@@ -32,7 +32,7 @@ class BookingActivity : AppCompatActivity() {
         db = AppDatabase.getDatabase(this)
         customerRepository = CustomerRepository(
             db.customerDao(),
-            db.customerStatsDao() // ✅ Fixed
+            db.customerStatsDao()
         )
 
         binding.btnBack.setOnClickListener { finish() }
@@ -54,7 +54,11 @@ class BookingActivity : AppCompatActivity() {
             }
 
             if (customers.isEmpty()) {
-                Toast.makeText(this@BookingActivity, "Belum ada pelanggan. Tambahkan terlebih dahulu.", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this@BookingActivity,
+                    "Belum ada pelanggan. Tambahkan terlebih dahulu.",
+                    Toast.LENGTH_LONG
+                ).show()
                 return@launch
             }
 
@@ -104,11 +108,17 @@ class BookingActivity : AppCompatActivity() {
             }
 
             if (trips.isEmpty()) {
-                Toast.makeText(this@BookingActivity, "Belum ada perjalanan tersedia", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@BookingActivity,
+                    "Belum ada perjalanan tersedia",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@launch
             }
 
-            val tripDisplay = trips.map { "${it.nomorPolisi} | ${it.asal} → ${it.tujuan}" }.toTypedArray()
+            val tripDisplay = trips.map {
+                "${it.nomorPolisi} | ${it.asal} → ${it.tujuan}"
+            }.toTypedArray()
 
             AlertDialog.Builder(this@BookingActivity)
                 .setTitle("Pilih Perjalanan")
@@ -219,14 +229,7 @@ class BookingActivity : AppCompatActivity() {
     }
 
     private fun updateSummary() {
-        if (selectedSeats.isEmpty()) {
-            binding.btnCreateBooking.isEnabled = false
-        } else {
-            binding.btnCreateBooking.isEnabled = true
-            val seats = selectedSeats.map { it.nomorKursi }.sorted().joinToString(", ")
-            val total = selectedSeats.size * (selectedTrip?.ongkos ?: 0.0)
-            // Update UI with selected seats info (add TextViews to your layout)
-        }
+        binding.btnCreateBooking.isEnabled = selectedSeats.isNotEmpty()
     }
 
     private fun createBooking() {

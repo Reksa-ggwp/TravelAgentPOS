@@ -1,4 +1,3 @@
-// FILE: app/src/main/java/com/travelagent/pos/repository/RepositoryResult.kt
 package com.travelagent.pos.repository
 
 sealed class RepositoryResult<out T> {
@@ -15,4 +14,15 @@ inline fun <T> RepositoryResult<T>.onSuccess(action: (T) -> Unit): RepositoryRes
 inline fun <T> RepositoryResult<T>.onFailure(action: (Exception) -> Unit): RepositoryResult<T> {
     if (this is RepositoryResult.Failure) action(exception)
     return this
+}
+
+// Add fold function for more functional approach
+inline fun <T, R> RepositoryResult<T>.fold(
+    onSuccess: (T) -> R,
+    onFailure: (Exception) -> R
+): R {
+    return when (this) {
+        is RepositoryResult.Success -> onSuccess(data)
+        is RepositoryResult.Failure -> onFailure(exception)
+    }
 }
