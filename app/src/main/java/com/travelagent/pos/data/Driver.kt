@@ -11,4 +11,3 @@ data class Driver(
     val nomorTelepon: String,
     val createdDate: Long = System.currentTimeMillis()
 )
-

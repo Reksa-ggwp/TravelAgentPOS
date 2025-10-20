@@ -16,8 +16,6 @@
         android:id="@+id/nav_booking"
         android:icon="@android:drawable/ic_menu_add"
         android:title="Booking Baru" />
-
-    <!-- NEW ITEMS -->
     <item
         android:id="@+id/nav_export"
         android:icon="@android:drawable/ic_menu_save"
@@ -26,4 +24,12 @@
         android:id="@+id/nav_backup"
         android:icon="@android:drawable/ic_menu_save"
         android:title="Backup &amp; Restore" />
+    <item
+        android:id="@+id/nav_reports"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Laporan" />
+    <item
+        android:id="@+id/nav_customer_stats"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Statistik Pelanggan" />
 </menu>

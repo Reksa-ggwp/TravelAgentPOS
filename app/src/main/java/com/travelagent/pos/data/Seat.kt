@@ -1,28 +1,34 @@
 package com.travelagent.pos.data
+
 import androidx.room.*
 
 @Entity(
     tableName = "seats",
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = Trip::class,
             parentColumns = ["id"],
             childColumns = ["tripId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         ),
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = Customer::class,
             parentColumns = ["id"],
             childColumns = ["customerId"],
-            onDelete = androidx.room.ForeignKey.SET_NULL
+            onDelete = ForeignKey.SET_NULL
         )
+    ],
+    indices = [
+        Index(value = ["tripId", "nomorKursi"], unique = true),
+        Index(value = ["status"]),
+        Index(value = ["customerId"])
     ]
 )
 data class Seat(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val tripId: Int,
-    val nomorKursi: Int, // 1-10
+    val nomorKursi: Int,
     val customerId: Int?,
     val status: String, // "available", "booked", "paid"
     val createdDate: Long = System.currentTimeMillis()

@@ -5,6 +5,9 @@
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
@@ -22,7 +25,7 @@
         android:theme="@style/Theme.TravelAgentPOS"
         tools:targetApi="31">
 
-        <!-- Main Activity (Launcher) -->
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -89,9 +92,19 @@
             android:exported="false"
             android:parentActivityName=".ui.BookingActivity" />
 
-        <activity android:name=".ui.GenerateSampleDataActivity" android:exported="true" />
+        <!-- Reports Activity -->
+        <activity
+            android:name=".ui.ReportsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
 
-        <!-- FileProvider for sharing files (optional, for future Excel/PDF export) -->
+        <!-- Customer Stats Activity -->
+        <activity
+            android:name=".ui.CustomerStatsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -1,4 +1,5 @@
 package com.travelagent.pos.data
+
 import androidx.room.*
 
 @Dao
@@ -14,4 +15,10 @@ interface TicketDao {
 
     @Query("SELECT * FROM tickets WHERE tripId = :tripId")
     suspend fun getTicketsByTrip(tripId: Int): List<Ticket>
+
+    @Query("SELECT * FROM tickets WHERE createdDate >= :startDate AND createdDate < :endDate")
+    suspend fun getTicketsBetween(startDate: Long, endDate: Long): List<Ticket>
+
+    @Query("SELECT * FROM tickets WHERE id = :id")
+    suspend fun getTicketById(id: Int): Ticket?
 }

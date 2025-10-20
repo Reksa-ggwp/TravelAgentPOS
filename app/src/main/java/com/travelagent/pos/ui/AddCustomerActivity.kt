@@ -1,74 +1,87 @@
-// AddCustomerActivity.kt
 package com.travelagent.pos.ui
-
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
+import androidx.lifecycle.lifecycleScope
 import android.widget.Toast
-import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Customer
+import com.travelagent.pos.databinding.ActivityAddCustomerBinding
+import com.travelagent.pos.repository.CustomerRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
 class AddCustomerActivity : AppCompatActivity() {
-    private lateinit var db: AppDatabase
+    private lateinit var binding: ActivityAddCustomerBinding
+    private lateinit var repository: CustomerRepository
     private var customerId: Int? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_customer)
-
-        db = AppDatabase.getDatabase(this)
-
-        val etName = findViewById<EditText>(R.id.etName)
-        val etPhone = findViewById<EditText>(R.id.etPhone)
-        val etAddress = findViewById<EditText>(R.id.etAddress)
-        val btnSave = findViewById<Button>(R.id.btnSave)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
-
+        binding = ActivityAddCustomerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        val db = AppDatabase.getDatabase(this)
+        repository = CustomerRepository(db.customerDao(), db.customerStatsDao())
         customerId = intent.getIntExtra("customerId", -1).takeIf { it != -1 }
-
         if (customerId != null) {
-            GlobalScope.launch {
-                val customer = db.customerDao().getCustomerById(customerId!!)
-                customer?.let {
-                    runOnUiThread {
-                        etName.setText(it.namaLengkap)
-                        etPhone.setText(it.nomorTelepon)
-                        etAddress.setText(it.alamat)
-                    }
-                }
+            loadCustomer()
+        }
+        binding.btnSave.setOnClickListener {
+            saveCustomer()
+        }
+        binding.btnBack.setOnClickListener { finish() }
+    }
+    private fun loadCustomer() {
+        lifecycleScope.launch {
+            val customer = withContext(Dispatchers.IO) {
+                repository.getCustomerById(customerId!!)
+            }
+            customer?.let {
+                binding.etName.setText(it.namaLengkap)
+                binding.etPhone.setText(it.nomorTelepon)
+                binding.etAddress.setText(it.alamat)
             }
         }
-
-        btnSave.setOnClickListener {
-            val name = etName.text.toString().trim()
-            val phone = etPhone.text.toString().trim()
-            val address = etAddress.text.toString().trim()
-
-            if (name.isEmpty() || phone.isEmpty() || address.isEmpty()) {
-                Toast.makeText(this, "Semua field harus diisi", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            GlobalScope.launch(Dispatchers.Main) {
-                if (customerId != null) {
-                    db.customerDao().update(
-                        Customer(customerId!!, name, phone, address)
-                    )
-                    Toast.makeText(this@AddCustomerActivity, "Pelanggan diperbarui", Toast.LENGTH_SHORT).show()
+    }
+    private fun saveCustomer() {
+        val name = binding.etName.text.toString().trim()
+        val phone = binding.etPhone.text.toString().trim()
+        val address = binding.etAddress.text.toString().trim()
+        lifecycleScope.launch {
+            try {
+                val customer = Customer(
+                    id = customerId ?: 0,
+                    namaLengkap = name,
+                    nomorTelepon = phone,
+                    alamat = address
+                )
+                val result = if (customerId != null) {
+                    repository.updateCustomer(customer)
                 } else {
-                    db.customerDao().insert(Customer(0, name, phone, address))
-                    Toast.makeText(this@AddCustomerActivity, "Pelanggan ditambahkan", Toast.LENGTH_SHORT).show()
+                    repository.insertCustomer(customer)
                 }
-                finish()
+                result.fold(
+                    onSuccess = {
+                        Toast.makeText(
+                            this@AddCustomerActivity,
+                            if (customerId != null) "Pelanggan diperbarui" else "Pelanggan ditambahkan",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(
+                            this@AddCustomerActivity,
+                            "Error: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                )
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@AddCustomerActivity,
+                    "Error: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
-
-        btnBack.setOnClickListener { finish() }
     }
 }

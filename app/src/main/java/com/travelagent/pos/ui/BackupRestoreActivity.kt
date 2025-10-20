@@ -1,166 +1,137 @@
 package com.travelagent.pos.ui
 
 import android.os.Bundle
-import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
-import android.widget.*
-import com.travelagent.pos.R
-import com.travelagent.pos.data.AppDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
+import android.widget.Toast
+import com.travelagent.pos.databinding.ActivityBackupRestoreBinding
+import com.travelagent.pos.utils.BackupManager
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
 class BackupRestoreActivity : AppCompatActivity() {
-    private lateinit var db: AppDatabase
+    private lateinit var binding: ActivityBackupRestoreBinding
+    private lateinit var backupManager: BackupManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_backup_restore)
+        binding = ActivityBackupRestoreBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        db = AppDatabase.getDatabase(this)
+        backupManager = BackupManager(this)
 
-        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
-        findViewById<Button>(R.id.btnBackup).setOnClickListener { createBackup() }
-        findViewById<Button>(R.id.btnRestore).setOnClickListener { showRestoreDialog() }
-        findViewById<Button>(R.id.btnViewBackups).setOnClickListener { viewBackups() }
+        binding.btnBack.setOnClickListener { finish() }
+        binding.btnBackup.setOnClickListener { createBackup() }
+        binding.btnRestore.setOnClickListener { showRestoreDialog() }
+        binding.btnViewBackups.setOnClickListener { viewBackups() }
     }
 
     private fun createBackup() {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             try {
-                // Get database path
-                val dbPath = getDatabasePath("travel_agent_db").absolutePath
-
-                // Create backup directory
-                val backupDir = File(getExternalFilesDir(null), "TravelAgentBackups")
-                if (!backupDir.exists()) {
-                    backupDir.mkdirs()
-                }
-
-                // Create backup file with timestamp
-                val sdf = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
-                val timestamp = sdf.format(Date())
-                val backupFile = File(backupDir, "backup_$timestamp.db")
-
-                // Copy database
-                FileInputStream(dbPath).use { input ->
-                    FileOutputStream(backupFile).use { output ->
-                        input.copyTo(output)
+                val result = backupManager.createBackup(isAuto = false)
+                result.fold(
+                    onSuccess = { file ->
+                        Toast.makeText(
+                            this@BackupRestoreActivity,
+                            "✓ Backup berhasil!\n${file.name}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(
+                            this@BackupRestoreActivity,
+                            "❌ Backup gagal: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                }
-
-                Toast.makeText(
-                    this@BackupRestoreActivity,
-                    "✓ Backup berhasil!\nLokasi: ${backupFile.absolutePath}",
-                    Toast.LENGTH_LONG
-                ).show()
-
+                )
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@BackupRestoreActivity,
-                    "❌ Backup gagal: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-                e.printStackTrace()
+                Toast.makeText(this@BackupRestoreActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun showRestoreDialog() {
-        val backupDir = File(getExternalFilesDir(null), "TravelAgentBackups")
+        val backups = backupManager.getAllBackups()
 
-        if (!backupDir.exists() || backupDir.listFiles()?.isEmpty() == true) {
+        if (backups.isEmpty()) {
             Toast.makeText(this, "Tidak ada backup tersedia", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val backupFiles = backupDir.listFiles()?.sortedByDescending { it.lastModified() } ?: return
-        val fileNames = backupFiles.map {
-            val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            "${sdf.format(Date(it.lastModified()))} (${it.length() / 1024} KB)"
+        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val fileNames = backups.map {
+            "${sdf.format(it.date)} (${it.sizeKB} KB) ${if (it.isAuto) "[Auto]" else ""}"
         }.toTypedArray()
 
         AlertDialog.Builder(this)
             .setTitle("Pilih Backup untuk Restore")
             .setItems(fileNames) { _, which ->
-                confirmRestore(backupFiles[which])
+                confirmRestore(backups[which])
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun confirmRestore(backupFile: File) {
+    private fun confirmRestore(backupInfo: com.travelagent.pos.utils.BackupInfo) {
         AlertDialog.Builder(this)
             .setTitle("Restore Database?")
-            .setMessage("PERHATIAN: Semua data saat ini akan diganti dengan data dari backup. Proses ini tidak dapat dibatalkan!\n\nBackup: ${backupFile.name}")
+            .setMessage("PERHATIAN: Semua data saat ini akan diganti dengan data dari backup.\n\nBackup: ${backupInfo.name}")
             .setPositiveButton("Restore") { _, _ ->
-                restoreBackup(backupFile)
+                restoreBackup(backupInfo)
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun restoreBackup(backupFile: File) {
-        GlobalScope.launch(Dispatchers.Main) {
+    private fun restoreBackup(backupInfo: com.travelagent.pos.utils.BackupInfo) {
+        lifecycleScope.launch {
             try {
-                // Close database
-                AppDatabase.getDatabase(this@BackupRestoreActivity).close()
-
-                // Get current database path
-                val dbPath = getDatabasePath("travel_agent_db")
-
-                // Copy backup to database
-                FileInputStream(backupFile).use { input ->
-                    FileOutputStream(dbPath).use { output ->
-                        input.copyTo(output)
+                val result = backupManager.restoreBackup(backupInfo.file)
+                result.fold(
+                    onSuccess = {
+                        Toast.makeText(
+                            this@BackupRestoreActivity,
+                            "✓ Restore berhasil!\nSilakan restart aplikasi.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        finishAffinity()
+                    },
+                    onFailure = { e ->
+                        Toast.makeText(
+                            this@BackupRestoreActivity,
+                            "❌ Restore gagal: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                }
-
-                Toast.makeText(
-                    this@BackupRestoreActivity,
-                    "✓ Database berhasil direstore!\nSilakan restart aplikasi.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                // Exit app so user can restart
-                finishAffinity()
-
+                )
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@BackupRestoreActivity,
-                    "❌ Restore gagal: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-                e.printStackTrace()
+                Toast.makeText(this@BackupRestoreActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun viewBackups() {
-        val backupDir = File(getExternalFilesDir(null), "TravelAgentBackups")
+        val backups = backupManager.getAllBackups()
 
-        if (!backupDir.exists() || backupDir.listFiles()?.isEmpty() == true) {
+        if (backups.isEmpty()) {
             Toast.makeText(this, "Tidak ada backup tersedia", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val backupFiles = backupDir.listFiles()?.sortedByDescending { it.lastModified() } ?: return
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-
-        val message = backupFiles.joinToString("\n\n") {
+        val message = backups.joinToString("\n\n") {
             "📁 ${it.name}\n" +
-                    "📅 ${sdf.format(Date(it.lastModified()))}\n" +
-                    "💾 ${it.length() / 1024} KB"
+                    "📅 ${sdf.format(it.date)}\n" +
+                    "💾 ${it.sizeKB} KB" +
+                    if (it.isAuto) " [Auto]" else ""
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Daftar Backup (${backupFiles.size})")
+            .setTitle("Daftar Backup (${backups.size})")
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()

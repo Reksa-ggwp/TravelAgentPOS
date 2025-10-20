@@ -1,32 +1,21 @@
 package com.travelagent.pos
-
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.drawerlayout.widget.DrawerLayout
-import com.google.android.material.navigation.NavigationView
-import android.widget.ImageButton
+import com.travelagent.pos.databinding.ActivityMainBinding
 import com.travelagent.pos.ui.*
-
 class MainActivity : AppCompatActivity() {
-    private lateinit var drawerLayout: DrawerLayout
-
+    private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        drawerLayout = findViewById(R.id.drawerLayout)
-        val navView = findViewById<NavigationView>(R.id.navView)
-        val btnMenu = findViewById<ImageButton>(R.id.btnMenu)
-
-        btnMenu.setOnClickListener {
-            drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.btnMenu.setOnClickListener {
+            binding.drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
         }
-
-        navView.setNavigationItemSelectedListener { menuItem ->
+        binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_trips -> {
-                    // Already on trips page, just refresh
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, TripListFragment())
                         .commit()
@@ -46,20 +35,22 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_backup -> {
                     startActivity(Intent(this, BackupRestoreActivity::class.java))
                 }
+                R.id.nav_reports -> {
+                    startActivity(Intent(this, ReportsActivity::class.java))
+                }
+                R.id.nav_customer_stats -> {
+                    startActivity(Intent(this, CustomerStatsActivity::class.java))
+                }
             }
-            drawerLayout.closeDrawers()
+            binding.drawerLayout.closeDrawers()
             true
         }
-
-        // Load TripListFragment
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, TripListFragment())
             .commit()
     }
-
     override fun onResume() {
         super.onResume()
-        // Refresh fragment when returning to refresh trip list after edit
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, TripListFragment())
             .commit()

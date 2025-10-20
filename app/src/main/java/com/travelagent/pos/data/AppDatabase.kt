@@ -1,11 +1,11 @@
-// AppDatabase.kt - COMPLETE UPDATED VERSION
-// Location: app/src/main/java/com/travelagent/pos/data/AppDatabase.kt
 package com.travelagent.pos.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [
@@ -13,27 +13,64 @@ import androidx.room.RoomDatabase
         Trip::class,
         Seat::class,
         Ticket::class,
-        Driver::class,    // NEW
-        Vehicle::class    // NEW
+        Driver::class,
+        Vehicle::class,
+        Payment::class,
+        CustomerStats::class
     ],
-    version = 2,  // CHANGED from 1 to 2
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
-    // Original DAOs
     abstract fun customerDao(): CustomerDao
     abstract fun tripDao(): TripDao
     abstract fun seatDao(): SeatDao
     abstract fun ticketDao(): TicketDao
-
-    // NEW DAOs
     abstract fun driverDao(): DriverDao
     abstract fun vehicleDao(): VehicleDao
+    abstract fun paymentDao(): PaymentDao
+    abstract fun customerStatsDao(): CustomerStatsDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create payments table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS payments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        ticketId INTEGER NOT NULL,
+                        amount REAL NOT NULL,
+                        paymentMethod TEXT NOT NULL,
+                        receiptNumber TEXT,
+                        notes TEXT,
+                        timestamp INTEGER NOT NULL,
+                        FOREIGN KEY(ticketId) REFERENCES tickets(id) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+
+                database.execSQL("CREATE INDEX index_payments_ticketId ON payments(ticketId)")
+                database.execSQL("CREATE INDEX index_payments_timestamp ON payments(timestamp)")
+
+                // Create customer_stats table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS customer_stats (
+                        customerId INTEGER PRIMARY KEY NOT NULL,
+                        totalTrips INTEGER NOT NULL DEFAULT 0,
+                        totalSpent REAL NOT NULL DEFAULT 0,
+                        lastTripDate INTEGER,
+                        loyaltyPoints INTEGER NOT NULL DEFAULT 0,
+                        tier TEXT NOT NULL DEFAULT 'Bronze'
+                    )
+                """.trimIndent())
+
+                // Update tickets table
+                database.execSQL("ALTER TABLE tickets ADD COLUMN totalPaid REAL NOT NULL DEFAULT 0")
+            }
+        }
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -42,7 +79,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "travel_agent_db"
                 )
-                    .fallbackToDestructiveMigration()  // IMPORTANT: Add this line
+                    .addMigrations(MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance

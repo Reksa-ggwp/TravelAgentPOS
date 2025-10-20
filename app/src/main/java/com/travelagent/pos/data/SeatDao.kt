@@ -1,4 +1,5 @@
 package com.travelagent.pos.data
+
 import androidx.room.*
 
 @Dao

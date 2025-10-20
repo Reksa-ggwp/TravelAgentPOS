@@ -1,4 +1,5 @@
 package com.travelagent.pos.data
+
 import androidx.room.*
 
 @Dao
@@ -17,4 +18,7 @@ interface TripDao {
 
     @Query("SELECT * FROM trips WHERE id = :id")
     suspend fun getTripById(id: Int): Trip?
+
+    @Query("SELECT * FROM trips WHERE tanggal >= :startDate AND tanggal < :endDate")
+    suspend fun getTripsBetween(startDate: Long, endDate: Long): List<Trip>
 }
