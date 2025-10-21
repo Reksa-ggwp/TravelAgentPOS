@@ -1,25 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="176dp"
-    android:background="#2196F3"
+    android:layout_height="200dp"
+    android:background="@drawable/header_gradient"
     android:gravity="bottom"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp">
+
+    <!-- App Icon -->
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="16dp"
+        android:src="@android:drawable/ic_menu_directions"
+        android:background="@drawable/circle_background"
+        android:padding="16dp"
+        app:tint="@color/text_white" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TRAVEL AGENT POS"
-        android:textColor="#FFFFFF"
+        android:text="🚌 Travel Agent POS"
+        android:textColor="@color/text_white"
         android:textSize="24sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:letterSpacing="0.02" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="v1.0"
-        android:textColor="#BBDEFB"
-        android:textSize="14sp" />
+        android:text="Sistem Manajemen Perjalanan"
+        android:textColor="@color/primary_blue_light"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="v2.0"
+        android:textColor="@color/primary_blue_light"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>

@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Colors -->
+    <color name="primary_blue">#2196F3</color>
+    <color name="primary_blue_dark">#1976D2</color>
+    <color name="primary_blue_light">#BBDEFB</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary_orange">#FF9800</color>
+    <color name="secondary_orange_dark">#F57C00</color>
+    <color name="secondary_orange_light">#FFE0B2</color>
+    
+    <!-- Success Colors -->
+    <color name="success_green">#4CAF50</color>
+    <color name="success_green_dark">#388E3C</color>
+    <color name="success_green_light">#C8E6C9</color>
+    
+    <!-- Warning Colors -->
+    <color name="warning_red">#F44336</color>
+    <color name="warning_red_dark">#D32F2F</color>
+    <color name="warning_red_light">#FFCDD2</color>
+    
+    <!-- Neutral Colors -->
+    <color name="background_light">#FAFAFA</color>
+    <color name="background_white">#FFFFFF</color>
+    <color name="surface_light">#F5F5F5</color>
+    <color name="surface_white">#FFFFFF</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="text_white">#FFFFFF</color>
+    
+    <!-- Border Colors -->
+    <color name="border_light">#E0E0E0</color>
+    <color name="border_medium">#BDBDBD</color>
+    
+    <!-- Legacy Colors (keeping for compatibility) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
