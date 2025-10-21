@@ -9,14 +9,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.travelagent.pos.R
 import com.travelagent.pos.data.Trip
 import com.travelagent.pos.data.AppDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class TripAdapter(
     private var trips: MutableList<Trip>,
+    private val scope: CoroutineScope,
     private val onItemClick: (Trip) -> Unit
 ) : RecyclerView.Adapter<TripAdapter.ViewHolder>() {
 
@@ -38,8 +38,8 @@ class TripAdapter(
             tvDate.text = sdf.format(Date(trip.tanggal))
             tvDriver.text = trip.namaSopir
 
-            // Calculate available seats
-            GlobalScope.launch(Dispatchers.Main) {
+            // Calculate available seats (use provided scope to respect lifecycle)
+            scope.launch {
                 val seats = db.seatDao().getSeatsByTrip(trip.id)
                 val available = seats.count { it.status == "available" }
                 tvAvailable.text = available.toString()
@@ -78,15 +78,15 @@ class TripAdapter(
         private fun deleteTrip(trip: Trip) {
             AlertDialog.Builder(itemView.context)
                 .setTitle("Hapus Perjalanan?")
-                .setMessage("Yakin ingin menghapus perjalanan ${trip.asal} → ${trip.tujuan}?\n\nSemua data kursi dan booking akan ikut terhapus.")
+                .setMessage("Yakin ingin menghapus perjalanan ${trip.asal} \u2192 ${trip.tujuan}?\n\nSemua data kursi dan booking akan ikut terhapus.")
                 .setPositiveButton("Hapus") { _, _ ->
-                    GlobalScope.launch(Dispatchers.Main) {
+                    scope.launch {
                         db.tripDao().delete(trip)
                         trips.remove(trip)
                         notifyDataSetChanged()
                         android.widget.Toast.makeText(
                             itemView.context,
-                            "✓ Perjalanan dihapus",
+                            "\u2713 Perjalanan dihapus",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }

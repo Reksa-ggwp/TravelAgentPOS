@@ -39,7 +39,9 @@ class AddCustomerActivity : AppCompatActivity() {
 
     private fun loadCustomer() {
         lifecycleScope.launch {
-            val customer = repository.getCustomerById(customerId!!)
+            val id = customerId
+            if (id == null) return@launch
+            val customer = repository.getCustomerById(id)
             customer?.let {
                 binding.etName.setText(it.namaLengkap)
                 binding.etPhone.setText(it.nomorTelepon)

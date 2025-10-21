@@ -32,7 +32,7 @@ class CustomerStatsAdapter(
 
             val lastTripText = if (item.stats.lastTripDate != null) {
                 SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    .format(Date(item.stats.lastTripDate!!))
+                    .format(Date(item.stats.lastTripDate))
             } else {
                 "Belum ada"
             }

@@ -13,8 +13,7 @@ import android.widget.Button
 import android.widget.Toast
 import com.travelagent.pos.R
 import com.travelagent.pos.data.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -43,7 +42,7 @@ class GenerateSampleDataActivity : AppCompatActivity() {
     }
 
     private fun generateSampleData() {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             try {
                 // 1. Create Drivers
                 val driver1 = Driver(namaSopir = "Ahmad Surya", nomorTelepon = "081234567890")

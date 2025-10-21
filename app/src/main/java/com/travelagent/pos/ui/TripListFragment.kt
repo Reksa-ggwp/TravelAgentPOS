@@ -11,8 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.widget.Button
 import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class TripListFragment : Fragment() {
@@ -31,7 +30,7 @@ class TripListFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvTrips)
         val btnAdd = view.findViewById<Button>(R.id.btnAddTrip)
 
-        adapter = TripAdapter(mutableListOf()) { trip ->
+        adapter = TripAdapter(mutableListOf(), viewLifecycleOwner.lifecycleScope) { trip ->
             val intent = Intent(requireContext(), TripDetailsActivity::class.java)
             intent.putExtra("tripId", trip.id)
             startActivity(intent)
@@ -50,7 +49,7 @@ class TripListFragment : Fragment() {
     }
 
     private fun loadTrips() {
-        GlobalScope.launch(Dispatchers.Main) {
+        viewLifecycleOwner.lifecycleScope.launch {
             val trips = db.tripDao().getAllTrips()
             adapter.updateList(trips.toMutableList())
         }

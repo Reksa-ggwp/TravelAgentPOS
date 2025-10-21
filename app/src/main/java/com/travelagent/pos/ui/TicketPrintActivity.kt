@@ -57,10 +57,21 @@ class TicketPrintActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    ticket = db.ticketDao().getTicketById(ticketId)!!
-                    trip = db.tripDao().getTripById(ticket.tripId)!!
-                    customer = db.customerDao().getCustomerById(ticket.customerId)!!
-                    seat = db.seatDao().getSeatById(ticket.seatId)!!
+                    val loadedTicket = db.ticketDao().getTicketById(ticketId)
+                    if (loadedTicket == null) throw Exception("Tiket tidak ditemukan")
+                    ticket = loadedTicket
+
+                    val loadedTrip = db.tripDao().getTripById(ticket.tripId)
+                    if (loadedTrip == null) throw Exception("Perjalanan tidak ditemukan")
+                    trip = loadedTrip
+
+                    val loadedCustomer = db.customerDao().getCustomerById(ticket.customerId)
+                    if (loadedCustomer == null) throw Exception("Pelanggan tidak ditemukan")
+                    customer = loadedCustomer
+
+                    val loadedSeat = db.seatDao().getSeatById(ticket.seatId)
+                    if (loadedSeat == null) throw Exception("Kursi tidak ditemukan")
+                    seat = loadedSeat
                 }
 
                 val receipt = receiptPrinter.generateReceipt(ticket, trip, customer, seat)
@@ -71,16 +82,26 @@ class TicketPrintActivity : AppCompatActivity() {
                     "Error: ${e.message}",
                     Toast.LENGTH_LONG
                 ).show()
+                finish()
             }
         }
     }
 
     private fun printTicket() {
+        if (!::ticket.isInitialized || !::trip.isInitialized || !::customer.isInitialized || !::seat.isInitialized) {
+            Toast.makeText(this, "Data tiket belum tersedia", Toast.LENGTH_SHORT).show()
+            return
+        }
         val receipt = receiptPrinter.generateReceipt(ticket, trip, customer, seat)
         receiptPrinter.shareReceipt(receipt)
     }
 
     private fun showPaymentDialog() {
+        if (!::ticket.isInitialized) {
+            Toast.makeText(this, "Data tiket belum tersedia", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val remaining = ticket.ongkos - ticket.totalPaid
 
         if (remaining <= 0) {

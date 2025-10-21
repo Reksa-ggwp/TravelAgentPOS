@@ -10,8 +10,7 @@ import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Seat
 import com.travelagent.pos.data.Trip
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,8 +35,14 @@ class TripDetailsActivity : AppCompatActivity() {
     }
 
     private fun loadTripDetails() {
-        GlobalScope.launch(Dispatchers.Main) {
-            trip = db.tripDao().getTripById(tripId)!!
+        lifecycleScope.launch {
+            val loadedTrip = db.tripDao().getTripById(tripId)
+            if (loadedTrip == null) {
+                Toast.makeText(this@TripDetailsActivity, "Perjalanan tidak ditemukan", Toast.LENGTH_SHORT).show()
+                finish()
+                return@launch
+            }
+            trip = loadedTrip
             seats = db.seatDao().getSeatsByTrip(tripId).toMutableList()
 
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id", "ID"))
@@ -133,7 +138,7 @@ class TripDetailsActivity : AppCompatActivity() {
     }
 
     private fun showSeatOptions(seat: Seat) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             val customer = seat.customerId?.let { db.customerDao().getCustomerById(it) }
             val customerName = customer?.namaLengkap ?: "Kosong"
 
@@ -158,7 +163,7 @@ class TripDetailsActivity : AppCompatActivity() {
     }
 
     private fun showCustomerSelectionDialog(seat: Seat) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             val customers = db.customerDao().getAllCustomers()
             if (customers.isEmpty()) {
                 Toast.makeText(this@TripDetailsActivity, "Belum ada pelanggan", Toast.LENGTH_SHORT).show()
@@ -169,7 +174,7 @@ class TripDetailsActivity : AppCompatActivity() {
             AlertDialog.Builder(this@TripDetailsActivity)
                 .setTitle("Pilih Penumpang untuk Kursi ${seat.nomorKursi}")
                 .setItems(customerNames) { _, which ->
-                    GlobalScope.launch(Dispatchers.Main) {
+                    lifecycleScope.launch {
                         val selectedCustomer = customers[which]
                         db.seatDao().update(seat.copy(
                             customerId = selectedCustomer.id,
@@ -195,7 +200,7 @@ class TripDetailsActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Status Kursi ${seat.nomorKursi}")
             .setItems(statusLabels) { _, idx ->
-                GlobalScope.launch(Dispatchers.Main) {
+                lifecycleScope.launch {
                     db.seatDao().update(seat.copy(status = statusOptions[idx]))
                     loadTripDetails()
                 }
@@ -204,7 +209,7 @@ class TripDetailsActivity : AppCompatActivity() {
     }
 
     private fun clearSeat(seat: Seat) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             db.seatDao().update(seat.copy(customerId = null, status = "available"))
             Toast.makeText(this@TripDetailsActivity, "Kursi ${seat.nomorKursi} dikosongkan", Toast.LENGTH_SHORT).show()
             loadTripDetails()
@@ -212,7 +217,7 @@ class TripDetailsActivity : AppCompatActivity() {
     }
 
     private fun sendToDriver() {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             val bookedSeats = seats.filter {
                 it.status in listOf("booked", "paid") && it.customerId != null
             }.sortedBy { it.nomorKursi }

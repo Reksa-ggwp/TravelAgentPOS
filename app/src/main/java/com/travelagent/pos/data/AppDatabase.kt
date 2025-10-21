@@ -1,6 +1,7 @@
 package com.travelagent.pos.data
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -36,10 +37,33 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Create drivers table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS drivers (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        namaSopir TEXT NOT NULL,
+                        nomorTelepon TEXT NOT NULL,
+                        createdDate INTEGER NOT NULL
+                    )
+                """.trimIndent())
+
+                // Create vehicles table
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS vehicles (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        nomorPolisi TEXT NOT NULL,
+                        createdDate INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 // Create payments table
-                database.execSQL("""
+                db.execSQL("""
                     CREATE TABLE IF NOT EXISTS payments (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         ticketId INTEGER NOT NULL,
@@ -52,11 +76,11 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
 
-                database.execSQL("CREATE INDEX IF NOT EXISTS index_payments_ticketId ON payments(ticketId)")
-                database.execSQL("CREATE INDEX IF NOT EXISTS index_payments_timestamp ON payments(timestamp)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_payments_ticketId ON payments(ticketId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_payments_timestamp ON payments(timestamp)")
 
                 // Create customer_stats table
-                database.execSQL("""
+                db.execSQL("""
                     CREATE TABLE IF NOT EXISTS customer_stats (
                         customerId INTEGER PRIMARY KEY NOT NULL,
                         totalTrips INTEGER NOT NULL DEFAULT 0,
@@ -68,7 +92,7 @@ abstract class AppDatabase : RoomDatabase() {
                 """.trimIndent())
 
                 // Update tickets table to add totalPaid column if it doesn't exist
-                database.execSQL("ALTER TABLE tickets ADD COLUMN totalPaid REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE tickets ADD COLUMN totalPaid REAL NOT NULL DEFAULT 0")
             }
         }
 
@@ -79,9 +103,15 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "travel_agent_db"
                 )
-                    .addMigrations(MIGRATION_2_3)
-                    .fallbackToDestructiveMigration() // Only for development
-                    .build()
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                        // Only allow destructive migration in debug/dev builds to avoid accidental data loss in production
+                                .apply {
+                                    val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+                                    if (isDebuggable) {
+                                        this.fallbackToDestructiveMigration()
+                                    }
+                                }
+                        .build()
                 INSTANCE = instance
                 instance
             }

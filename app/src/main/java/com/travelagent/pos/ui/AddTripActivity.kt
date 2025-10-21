@@ -10,8 +10,9 @@ import com.travelagent.pos.data.Trip
 import com.travelagent.pos.data.Driver
 import com.travelagent.pos.data.Vehicle
 import com.travelagent.pos.data.Seat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import com.travelagent.pos.utils.Constants
+import com.travelagent.pos.utils.ErrorHandler
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -57,7 +58,7 @@ class AddTripActivity : AppCompatActivity() {
         spinnerTujuan.adapter = cityAdapter
 
         // Load Drivers and Vehicles
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
             val drivers = db.driverDao().getAllDrivers()
             val vehicles = db.vehicleDao().getAllVehicles()
 
@@ -187,8 +188,10 @@ class AddTripActivity : AppCompatActivity() {
         spinnerDriver: Spinner,
         spinnerPlate: Spinner
     ) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val trip = db.tripDao().getTripById(tripId!!) ?: return@launch
+        lifecycleScope.launch {
+            val existingTripId = tripId
+            if (existingTripId == null) return@launch
+            val trip = db.tripDao().getTripById(existingTripId) ?: return@launch
 
             selectedDate = trip.tanggal
 
@@ -220,26 +223,33 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun createTrip(asal: String, tujuan: String, price: Double) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
+            val driver = selectedDriver
+            val vehicle = selectedVehicle
+            if (driver == null || vehicle == null) {
+                Toast.makeText(this@AddTripActivity, "Pilih sopir dan kendaraan", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
             val trip = Trip(
                 asal = asal,
                 tujuan = tujuan,
                 tanggal = selectedDate,
-                namaSopir = selectedDriver!!.namaSopir,
-                nomorTeleponSopir = selectedDriver!!.nomorTelepon,
-                nomorPolisi = selectedVehicle!!.nomorPolisi,
+                namaSopir = driver.namaSopir,
+                nomorTeleponSopir = driver.nomorTelepon,
+                nomorPolisi = vehicle.nomorPolisi,
                 ongkos = price
             )
             val newTripId = db.tripDao().insert(trip).toInt()
 
-            // Create 10 seats automatically
-            repeat(10) { i ->
+            // Create seats automatically
+            repeat(Constants.DEFAULT_SEAT_COUNT) { i ->
                 db.seatDao().insert(
                     Seat(
                         tripId = newTripId,
                         nomorKursi = i + 1,
                         customerId = null,
-                        status = "available"
+                        status = Constants.SEAT_STATUS_AVAILABLE
                     )
                 )
             }
@@ -254,15 +264,23 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun updateTrip(asal: String, tujuan: String, price: Double) {
-        GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
+            val existingTripId = tripId
+            val driver = selectedDriver
+            val vehicle = selectedVehicle
+            if (existingTripId == null || driver == null || vehicle == null) {
+                Toast.makeText(this@AddTripActivity, "Data tidak lengkap untuk update", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
             val trip = Trip(
-                id = tripId!!,
+                id = existingTripId,
                 asal = asal,
                 tujuan = tujuan,
                 tanggal = selectedDate,
-                namaSopir = selectedDriver!!.namaSopir,
-                nomorTeleponSopir = selectedDriver!!.nomorTelepon,
-                nomorPolisi = selectedVehicle!!.nomorPolisi,
+                namaSopir = driver.namaSopir,
+                nomorTeleponSopir = driver.nomorTelepon,
+                nomorPolisi = vehicle.nomorPolisi,
                 ongkos = price
             )
             db.tripDao().update(trip)

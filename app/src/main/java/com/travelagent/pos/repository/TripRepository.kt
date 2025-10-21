@@ -1,6 +1,7 @@
 package com.travelagent.pos.repository
 
 import com.travelagent.pos.data.*
+import com.travelagent.pos.utils.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -11,13 +12,13 @@ class TripRepository(
 ) {
     private var cachedTrips: List<Trip>? = null
     private var cacheTime: Long = 0
-    private val CACHE_DURATION = 5 * 60 * 1000
+    private val CACHE_DURATION = Constants.CACHE_DURATION_MS
 
     suspend fun getAllTrips(forceRefresh: Boolean = false): List<Trip> = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
 
         if (!forceRefresh && cachedTrips != null && (now - cacheTime) < CACHE_DURATION) {
-            return@withContext cachedTrips!!
+            return@withContext cachedTrips ?: emptyList()
         }
 
         val trips = tripDao.getAllTrips()
@@ -34,12 +35,12 @@ class TripRepository(
         try {
             val tripId = tripDao.insert(trip).toInt()
 
-            repeat(10) { i ->
+            repeat(Constants.DEFAULT_SEAT_COUNT) { i ->
                 seatDao.insert(Seat(
                     tripId = tripId,
                     nomorKursi = i + 1,
                     customerId = null,
-                    status = "available"
+                    status = Constants.SEAT_STATUS_AVAILABLE
                 ))
             }
 
@@ -63,7 +64,7 @@ class TripRepository(
     suspend fun deleteTrip(trip: Trip): RepositoryResult<Unit> = withContext(Dispatchers.IO) {
         try {
             val tickets = ticketDao.getTicketsByTrip(trip.id)
-            val hasPaidTickets = tickets.any { it.status == "paid" }
+            val hasPaidTickets = tickets.any { it.status == Constants.TICKET_STATUS_PAID }
 
             if (hasPaidTickets) {
                 RepositoryResult.Failure(Exception("Tidak dapat menghapus trip dengan tiket yang sudah dibayar"))
@@ -86,9 +87,9 @@ class TripRepository(
             trip = trip,
             seats = seats,
             tickets = tickets,
-            availableSeats = seats.count { it.status == "available" },
-            bookedSeats = seats.count { it.status == "booked" },
-            paidSeats = seats.count { it.status == "paid" }
+            availableSeats = seats.count { it.status == Constants.SEAT_STATUS_AVAILABLE },
+            bookedSeats = seats.count { it.status == Constants.SEAT_STATUS_BOOKED },
+            paidSeats = seats.count { it.status == Constants.SEAT_STATUS_PAID }
         )
     }
 

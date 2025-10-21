@@ -11,6 +11,8 @@ import com.travelagent.pos.R
 import com.travelagent.pos.data.*
 import com.travelagent.pos.databinding.ActivityBookingBinding
 import com.travelagent.pos.repository.CustomerRepository
+import com.travelagent.pos.utils.Constants
+import com.travelagent.pos.utils.ErrorHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -181,7 +183,7 @@ class BookingActivity : AppCompatActivity() {
             textSize = 20f
 
             when (seat.status) {
-                "available" -> {
+                Constants.SEAT_STATUS_AVAILABLE -> {
                     setBackgroundColor(Color.GREEN)
                     setTextColor(Color.WHITE)
                     setOnClickListener {
@@ -251,18 +253,22 @@ class BookingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
+                    val customer = selectedCustomer
+                    val trip = selectedTrip
+                    if (customer == null || trip == null) throw Exception("Data booking tidak lengkap")
+
                     selectedSeats.forEach { seat ->
                         db.seatDao().update(seat.copy(
-                            customerId = selectedCustomer!!.id,
-                            status = "booked"
+                            customerId = customer.id,
+                            status = Constants.SEAT_STATUS_BOOKED
                         ))
 
                         db.ticketDao().insert(Ticket(
                             seatId = seat.id,
-                            tripId = selectedTrip!!.id,
-                            customerId = selectedCustomer!!.id,
-                            ongkos = selectedTrip!!.ongkos,
-                            status = "pending"
+                            tripId = trip.id,
+                            customerId = customer.id,
+                            ongkos = trip.ongkos,
+                            status = Constants.TICKET_STATUS_PENDING
                         ))
                     }
                 }
