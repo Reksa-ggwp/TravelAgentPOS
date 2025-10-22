@@ -16,10 +16,6 @@ class CustomerAdapter(
 
         fun bind(customer: Customer, position: Int) {
             binding.apply {
-                // Set initial (first letter of name)
-                val initial = customer.namaLengkap.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
-                tvInitial.text = initial
-
                 // Set customer data
                 tvCustomerName.text = customer.namaLengkap
                 tvCustomerPhone.text = customer.nomorTelepon

@@ -28,7 +28,8 @@ class AddTripActivity : AppCompatActivity() {
     private var tripId: Int? = null
     private var isEditMode = false
 
-    private val cities = arrayOf("Sibolga", "Medan", "Padang", "Pekanbaru", "Jambi")
+    // FIXED: Only 2 cities allowed
+    private val cities = arrayOf("Sibolga", "Medan")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,10 +60,15 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun setupCityInputs() {
+        // FIXED: Cities are dropdown only, not editable
         val cityAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, cities)
 
         binding.actvOrigin.setAdapter(cityAdapter)
         binding.actvDestination.setAdapter(cityAdapter)
+
+        // Make them non-editable (dropdown only)
+        binding.actvOrigin.inputType = 0
+        binding.actvDestination.inputType = 0
 
         // Set threshold to show dropdown immediately
         binding.actvOrigin.threshold = 1
@@ -117,6 +123,7 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun setupDriverDropdown(drivers: List<Driver>) {
+        // FIXED: Driver names as dropdown
         val driverNames = drivers.map { it.namaSopir }
         val driverAdapter = ArrayAdapter(
             this,
@@ -125,10 +132,14 @@ class AddTripActivity : AppCompatActivity() {
         )
 
         binding.actvDriver.setAdapter(driverAdapter)
+
+        // FIXED: Make non-editable (dropdown only)
+        binding.actvDriver.inputType = 0
         binding.actvDriver.threshold = 1
 
+        // FIXED: Auto-fill phone number when driver selected
         binding.actvDriver.setOnItemClickListener { _, _, position, _ ->
-            if (drivers.isNotEmpty()) {
+            if (position < drivers.size) {
                 selectedDriver = drivers[position]
                 binding.etDriverPhone.setText(selectedDriver?.nomorTelepon)
             }
@@ -136,6 +147,7 @@ class AddTripActivity : AppCompatActivity() {
     }
 
     private fun setupVehicleDropdown(vehicles: List<Vehicle>) {
+        // FIXED: Vehicle plates as dropdown
         val plateNumbers = vehicles.map { it.nomorPolisi }
         val vehicleAdapter = ArrayAdapter(
             this,
@@ -144,10 +156,13 @@ class AddTripActivity : AppCompatActivity() {
         )
 
         binding.actvVehicle.setAdapter(vehicleAdapter)
+
+        // FIXED: Make non-editable (dropdown only)
+        binding.actvVehicle.inputType = 0
         binding.actvVehicle.threshold = 1
 
         binding.actvVehicle.setOnItemClickListener { _, _, position, _ ->
-            if (vehicles.isNotEmpty()) {
+            if (position < vehicles.size) {
                 selectedVehicle = vehicles[position]
             }
         }
