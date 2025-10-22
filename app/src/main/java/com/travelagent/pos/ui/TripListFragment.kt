@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import android.widget.Button
-import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
+import com.travelagent.pos.databinding.FragmentTripListBinding
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class TripListFragment : Fragment() {
+    private var _binding: FragmentTripListBinding? = null
+    private val binding get() = _binding!!
     private lateinit var db: AppDatabase
     private lateinit var adapter: TripAdapter
 
@@ -22,41 +22,95 @@ class TripListFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_trip_list, container, false)
+    ): View {
+        _binding = FragmentTripListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         db = AppDatabase.getDatabase(requireContext())
+        setupRecyclerView()
+        setupFab()
+        loadTrips()
+    }
 
-        val recyclerView = view.findViewById<RecyclerView>(R.id.rvTrips)
-        val btnAdd = view.findViewById<Button>(R.id.btnAddTrip)
-
+    private fun setupRecyclerView() {
         adapter = TripAdapter(mutableListOf(), viewLifecycleOwner.lifecycleScope) { trip ->
             val intent = Intent(requireContext(), TripDetailsActivity::class.java)
             intent.putExtra("tripId", trip.id)
             startActivity(intent)
         }
 
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = adapter
+        binding.rvTrips.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@TripListFragment.adapter
+            setHasFixedSize(true)
+        }
+    }
 
-        btnAdd.setOnClickListener {
+    private fun setupFab() {
+        binding.btnAddTrip.setOnClickListener {
             startActivity(Intent(requireContext(), AddTripActivity::class.java))
         }
-
-        loadTrips()
-
-        return view
     }
 
     private fun loadTrips() {
         viewLifecycleOwner.lifecycleScope.launch {
             val trips = db.tripDao().getAllTrips()
-            adapter.updateList(trips.toMutableList())
+
+            if (trips.isEmpty()) {
+                showEmptyState()
+            } else {
+                hideEmptyState()
+                adapter.updateList(trips.toMutableList())
+                updateSummary(trips.size)
+            }
         }
+    }
+
+    private fun updateSummary(totalTrips: Int) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            binding.tvTotalTrips.text = totalTrips.toString()
+
+            // Calculate total available seats
+            val trips = db.tripDao().getAllTrips()
+            var totalAvailable = 0
+
+            trips.forEach { trip ->
+                val seats = db.seatDao().getSeatsByTrip(trip.id)
+                totalAvailable += seats.count { it.status == "available" }
+            }
+
+            binding.tvAvailableSeats.text = totalAvailable.toString()
+        }
+    }
+
+    private fun showEmptyState() {
+        binding.rvTrips.visibility = View.GONE
+        binding.emptyState.visibility = View.VISIBLE
+        binding.tvTotalTrips.text = "0"
+        binding.tvAvailableSeats.text = "0"
+
+        // Setup empty state button
+        binding.btnEmptyAction.setOnClickListener {
+            startActivity(Intent(requireContext(), AddTripActivity::class.java))
+        }
+    }
+
+    private fun hideEmptyState() {
+        binding.rvTrips.visibility = View.VISIBLE
+        binding.emptyState.visibility = View.GONE
     }
 
     override fun onResume() {
         super.onResume()
         loadTrips()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

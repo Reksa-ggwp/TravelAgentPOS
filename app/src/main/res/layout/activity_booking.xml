@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/warning"
-            android:elevation="@dimen/toolbar_elevation"
+            android:elevation="4dp"
             app:title="Booking Baru"
             app:titleTextColor="@color/white"
             app:navigationIcon="@drawable/ic_back"
@@ -33,59 +33,138 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/spacing_md">
+            android:padding="16dp">
+
+            <!-- Progress Indicator -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:gravity="center">
+
+                <View
+                    android:id="@+id/progressStep1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="4dp"
+                    android:background="@color/primary"/>
+
+                <View
+                    android:id="@+id/progressStep2"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="4dp"
+                    android:background="@color/lighter_gray"
+                    android:layout_marginStart="4dp"/>
+
+                <View
+                    android:id="@+id/progressStep3"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="4dp"
+                    android:background="@color/lighter_gray"
+                    android:layout_marginStart="4dp"/>
+
+            </LinearLayout>
 
             <!-- Step 1: Customer Selection -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCustomer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_md"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_md">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/spacing_sm">
+                        android:layout_marginBottom="16dp">
 
                         <TextView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:text="1"
                             android:gravity="center"
                             android:background="@drawable/step_number_bg"
                             android:textColor="@color/white"
                             android:textStyle="bold"
-                            android:textSize="16sp"/>
+                            android:textSize="18sp"/>
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:layout_marginStart="12dp"
                             android:text="Pilih Pelanggan"
-                            android:textAppearance="@style/TextAppearance.App.Title"/>
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <ImageView
+                            android:id="@+id/checkCustomer"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_check"
+                            android:visibility="gone"
+                            app:tint="@color/success"/>
 
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSelectCustomer"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="56dp"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:text="Pilih Pelanggan"
+                        android:textSize="16sp"
                         android:textAlignment="textStart"
                         app:icon="@drawable/ic_person"
                         app:iconGravity="start"
+                        app:iconSize="24dp"
                         app:strokeColor="@color/primary"
-                        app:cornerRadius="8dp"/>
+                        app:strokeWidth="2dp"
+                        app:cornerRadius="12dp"/>
+
+                    <!-- Selected Customer Info (Initially Hidden) -->
+                    <LinearLayout
+                        android:id="@+id/selectedCustomerInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@color/surface_variant"
+                        android:padding="12dp"
+                        android:layout_marginTop="12dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/tvSelectedCustomerName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/tvSelectedCustomerPhone"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -93,55 +172,101 @@
 
             <!-- Step 2: Trip Selection -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardTrip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_md"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/lighter_gray"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_md">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/spacing_sm">
+                        android:layout_marginBottom="16dp">
 
                         <TextView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:text="2"
                             android:gravity="center"
                             android:background="@drawable/step_number_bg"
                             android:textColor="@color/white"
                             android:textStyle="bold"
-                            android:textSize="16sp"/>
+                            android:textSize="18sp"/>
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:layout_marginStart="12dp"
                             android:text="Pilih Perjalanan"
-                            android:textAppearance="@style/TextAppearance.App.Title"/>
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <ImageView
+                            android:id="@+id/checkTrip"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_check"
+                            android:visibility="gone"
+                            app:tint="@color/success"/>
 
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSelectTrip"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="56dp"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:text="Pilih Perjalanan"
+                        android:textSize="16sp"
                         android:textAlignment="textStart"
                         app:icon="@drawable/ic_bus"
                         app:iconGravity="start"
+                        app:iconSize="24dp"
                         app:strokeColor="@color/info"
-                        app:cornerRadius="8dp"/>
+                        app:strokeWidth="2dp"
+                        app:cornerRadius="12dp"/>
+
+                    <!-- Selected Trip Info (Initially Hidden) -->
+                    <LinearLayout
+                        android:id="@+id/selectedTripInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@color/surface_variant"
+                        android:padding="12dp"
+                        android:layout_marginTop="12dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/tvSelectedTripRoute"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/tvSelectedTripDetails"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp"/>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -149,41 +274,56 @@
 
             <!-- Step 3: Seat Selection -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSeats"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_md"
-                app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="@dimen/card_elevation">
+                android:layout_marginBottom="80dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/lighter_gray"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/spacing_md">
+                    android:padding="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="@dimen/spacing_md">
+                        android:layout_marginBottom="16dp">
 
                         <TextView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:text="3"
                             android:gravity="center"
                             android:background="@drawable/step_number_bg"
                             android:textColor="@color/white"
                             android:textStyle="bold"
-                            android:textSize="16sp"/>
+                            android:textSize="18sp"/>
 
                         <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Pilih Kursi"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+
+                        <TextView
+                            android:id="@+id/tvSelectedSeatsCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/spacing_sm"
-                            android:text="Pilih Kursi"
-                            android:textAppearance="@style/TextAppearance.App.Title"/>
+                            android:text="0 kursi"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary"/>
 
                     </LinearLayout>
 
@@ -193,36 +333,36 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:background="@drawable/seat_layout_bg"
-                        android:padding="@dimen/spacing_md">
+                        android:padding="16dp">
 
-                        <!-- Row 1: 1 | X | Driver -->
+                        <!-- Row 1 -->
                         <LinearLayout
                             android:id="@+id/seatRow1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="@dimen/spacing_sm"
+                            android:layout_marginBottom="8dp"
                             android:gravity="center"/>
 
-                        <!-- Row 2: 4 | 3 | 2 -->
+                        <!-- Row 2 -->
                         <LinearLayout
                             android:id="@+id/seatRow2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="@dimen/spacing_sm"
+                            android:layout_marginBottom="8dp"
                             android:gravity="center"/>
 
-                        <!-- Row 3: 7 | 6 | 5 -->
+                        <!-- Row 3 -->
                         <LinearLayout
                             android:id="@+id/seatRow3"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="@dimen/spacing_sm"
+                            android:layout_marginBottom="8dp"
                             android:gravity="center"/>
 
-                        <!-- Row 4: 10 | 9 | 8 -->
+                        <!-- Row 4 -->
                         <LinearLayout
                             android:id="@+id/seatRow4"
                             android:layout_width="match_parent"
@@ -237,7 +377,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginTop="@dimen/spacing_md"
+                        android:layout_marginTop="16dp"
                         android:gravity="center">
 
                         <LinearLayout
@@ -245,19 +385,42 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginEnd="@dimen/spacing_md">
+                            android:layout_marginEnd="16dp">
 
                             <View
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
                                 android:background="@drawable/seat_available_bg"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/spacing_xs"
+                                android:layout_marginStart="6dp"
                                 android:text="Tersedia"
-                                android:textAppearance="@style/TextAppearance.App.Caption"/>
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"/>
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginEnd="16dp">
+
+                            <View
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:background="@drawable/seat_selected_bg"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:text="Dipilih"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"/>
 
                         </LinearLayout>
 
@@ -268,16 +431,17 @@
                             android:gravity="center_vertical">
 
                             <View
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
                                 android:background="@drawable/seat_occupied_bg"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/spacing_xs"
+                                android:layout_marginStart="6dp"
                                 android:text="Terisi"
-                                android:textAppearance="@style/TextAppearance.App.Caption"/>
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary"/>
 
                         </LinearLayout>
 
@@ -292,19 +456,59 @@
     </androidx.core.widget.NestedScrollView>
 
     <!-- Bottom Action Button -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCreateBooking"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="@dimen/button_height_large"
-        android:layout_margin="@dimen/spacing_md"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:text="Buat Booking"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        style="@style/Widget.App.Button.Error"
-        app:icon="@drawable/ic_check"
-        app:iconGravity="textStart"
-        app:cornerRadius="12dp"
-        android:elevation="8dp"/>
+        app:cardElevation="8dp"
+        app:cardCornerRadius="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Total Kursi"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"/>
+
+                <TextView
+                    android:id="@+id/tvTotalSeatsBottom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 kursi"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"/>
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateBooking"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Buat Booking"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:enabled="false"
+                style="@style/Widget.App.Button.Warning"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

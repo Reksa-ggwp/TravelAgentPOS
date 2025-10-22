@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Splash Screen Theme -->
+    <style name="Theme.App.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_gradient</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
     <!-- Base App Theme -->
     <style name="Theme.TravelAgentPOS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color -->
@@ -118,7 +125,11 @@
         <item name="elevation">6dp</item>
     </style>
 
-    <!-- Text Styles -->
+    <!-- Text Appearance Styles - ADD THESE -->
+    <style name="TextAppearance.App" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
     <style name="TextAppearance.App.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
         <item name="android:textSize">32sp</item>
         <item name="android:textColor">@color/text_primary</item>

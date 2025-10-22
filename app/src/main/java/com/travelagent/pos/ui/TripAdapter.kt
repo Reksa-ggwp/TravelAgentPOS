@@ -8,7 +8,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Trip
-import com.travelagent.pos.databinding.ItemTripBinding
+import com.travelagent.pos.databinding.ItemTripCardBinding
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -21,7 +21,7 @@ class TripAdapter(
 
     private lateinit var db: AppDatabase
 
-    inner class ViewHolder(private val binding: ItemTripBinding) :
+    inner class ViewHolder(private val binding: ItemTripCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(trip: Trip, position: Int) {
@@ -33,7 +33,7 @@ class TripAdapter(
                 tvOrigin.text = trip.asal
                 tvDestination.text = trip.tujuan
 
-                // Format and set date using extension
+                // Format and set date
                 tvDate.text = trip.tanggal.toFormattedDate("dd MMM yyyy")
 
                 // Set driver
@@ -43,13 +43,15 @@ class TripAdapter(
                 scope.launch {
                     val seats = db.seatDao().getSeatsByTrip(trip.id)
                     val available = seats.count { it.status == "available" }
-                    chipAvailable.text = "$available tersedia"
+                    chipAvailable.text = "$available kursi"
 
                     // Change color based on availability
-                    chipAvailable.setChipBackgroundColorResource(
-                        if (available > 0) android.R.color.holo_green_light
-                        else android.R.color.darker_gray
-                    )
+                    val color = when {
+                        available == 0 -> android.R.color.darker_gray
+                        available <= 3 -> com.travelagent.pos.R.color.warning
+                        else -> com.travelagent.pos.R.color.status_available
+                    }
+                    chipAvailable.setChipBackgroundColorResource(color)
                 }
 
                 // Click listeners
@@ -101,7 +103,7 @@ class TripAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         db = AppDatabase.getDatabase(parent.context)
-        val binding = ItemTripBinding.inflate(
+        val binding = ItemTripCardBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -119,4 +121,10 @@ class TripAdapter(
         trips = newList
         notifyDataSetChanged()
     }
+}
+
+// Extension function for date formatting
+fun Long.toFormattedDate(pattern: String = "dd/MM/yyyy"): String {
+    val sdf = SimpleDateFormat(pattern, Locale("id", "ID"))
+    return sdf.format(Date(this))
 }
