@@ -14,7 +14,7 @@ class CustomerAdapter(
     inner class ViewHolder(private val binding: ItemCustomerBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(customer: Customer, position: Int) {
+        fun bind(customer: Customer, @Suppress("UNUSED_PARAMETER") position: Int) {
             binding.apply {
                 // Set customer data
                 tvCustomerName.text = customer.namaLengkap

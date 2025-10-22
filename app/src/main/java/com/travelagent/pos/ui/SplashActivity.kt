@@ -1,13 +1,12 @@
 package com.travelagent.pos.ui
 
-import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.travelagent.pos.MainActivity
 import com.travelagent.pos.databinding.ActivitySplashBinding
 
@@ -16,13 +15,12 @@ class SplashActivity : AppCompatActivity() {
     private val splashDuration = 2000L // 2 seconds
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install splash screen before setContentView
+        installSplashScreen()
+        
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Hide status bar for full screen splash
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        actionBar?.hide()
 
         // Start animations
         startAnimations()
@@ -31,6 +29,7 @@ class SplashActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             startActivity(Intent(this, MainActivity::class.java))
             finish()
+            @Suppress("DEPRECATION")
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }, splashDuration)
     }

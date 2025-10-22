@@ -134,21 +134,19 @@
                 android:layout_height="wrap_content"
                 android:elevation="4dp">
 
-                <ScrollView
+                <TextView
+                    android:id="@+id/tvReportResult"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp">
-
-                    <TextView
-                        android:id="@+id/tvReportResult"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Pilih jenis laporan di atas untuk generate"
-                        android:textSize="14sp"
-                        android:padding="16dp"
-                        android:textColor="#000000"
-                        android:fontFamily="monospace" />
-
-                </ScrollView>
+                    android:layout_height="300dp"
+                    android:text="Pilih jenis laporan di atas untuk generate"
+                    android:textSize="14sp"
+                    android:padding="16dp"
+                    android:textColor="#000000"
+                    android:fontFamily="monospace"
+                    android:scrollbars="vertical"
+                    android:scrollHorizontally="false"
+                    android:maxLines="15"
+                    android:isScrollContainer="true" />
 
             </androidx.cardview.widget.CardView>
 

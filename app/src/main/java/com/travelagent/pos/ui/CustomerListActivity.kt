@@ -89,7 +89,7 @@ class CustomerListActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.loading.observe(this) { isLoading ->
+        viewModel.loading.observe(this) { _ ->
             // You can show/hide a progress bar here
             // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }

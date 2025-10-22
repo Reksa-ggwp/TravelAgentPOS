@@ -24,7 +24,7 @@ class TripAdapter(
     inner class ViewHolder(private val binding: ItemTripCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(trip: Trip, position: Int) {
+        fun bind(trip: Trip, @Suppress("UNUSED_PARAMETER") position: Int) {
             binding.apply {
                 // Set plate number chip
                 chipPlate.text = trip.nomorPolisi

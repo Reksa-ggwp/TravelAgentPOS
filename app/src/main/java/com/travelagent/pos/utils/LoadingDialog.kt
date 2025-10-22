@@ -14,7 +14,7 @@ class LoadingDialog(private val context: Context) {
     fun show(message: String = "Memproses...") {
         if (dialog == null) {
             dialog = Dialog(context).apply {
-                val view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null)
+                val view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, null, false)
                 setContentView(view)
                 setCancelable(false)
                 window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))

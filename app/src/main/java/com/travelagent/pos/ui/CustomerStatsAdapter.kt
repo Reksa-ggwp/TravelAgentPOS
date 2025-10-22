@@ -23,7 +23,7 @@ class CustomerStatsAdapter(
         val tvPoints: TextView = itemView.findViewById(R.id.tvPoints)
         val tvLastTrip: TextView = itemView.findViewById(R.id.tvLastTrip)
 
-        fun bind(item: CustomerStatsWithName, position: Int) {
+        fun bind(item: CustomerStatsWithName, @Suppress("UNUSED_PARAMETER") position: Int) {
             tvName.text = item.customerName
             tvTier.text = getTierEmoji(item.stats.tier) + " " + item.stats.tier
             tvTrips.text = "${item.stats.totalTrips} trip"
