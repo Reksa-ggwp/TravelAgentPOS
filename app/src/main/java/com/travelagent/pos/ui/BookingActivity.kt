@@ -1,18 +1,21 @@
 package com.travelagent.pos.ui
 
-import android.content.Intent
-import android.os.Bundle
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import android.widget.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.travelagent.pos.R
 import com.travelagent.pos.data.*
 import com.travelagent.pos.databinding.ActivityBookingBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.utils.Constants
-import com.travelagent.pos.utils.ErrorHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,6 +24,7 @@ class BookingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityBookingBinding
     private lateinit var db: AppDatabase
     private lateinit var customerRepository: CustomerRepository
+
     private var selectedCustomer: Customer? = null
     private var selectedTrip: Trip? = null
     private val selectedSeats = mutableSetOf<Seat>()
@@ -37,69 +41,62 @@ class BookingActivity : AppCompatActivity() {
             db.customerStatsDao()
         )
 
-        binding.btnBack.setOnClickListener { finish() }
+        setupToolbar()
+        setupClickListeners()
+        disableSeatsSelection()
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(true)
+        binding.toolbar.setNavigationOnClickListener { finish() }
+    }
+
+    private fun setupClickListeners() {
         binding.btnSelectCustomer.setOnClickListener { selectCustomer() }
         binding.btnSelectTrip.setOnClickListener { selectTrip() }
         binding.btnCreateBooking.setOnClickListener { createBooking() }
 
-        disableSeatsSelection()
+        // Initially disable booking button
+        binding.btnCreateBooking.isEnabled = false
     }
 
     private fun selectCustomer() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_search_customer, null)
-        val etSearch = dialogView.findViewById<EditText>(R.id.etSearchCustomer)
-        val lvCustomers = dialogView.findViewById<ListView>(R.id.lvCustomers)
-
         lifecycleScope.launch {
             val customers = withContext(Dispatchers.IO) {
                 customerRepository.getAllCustomers()
             }
 
             if (customers.isEmpty()) {
-                Toast.makeText(
-                    this@BookingActivity,
-                    "Belum ada pelanggan. Tambahkan terlebih dahulu.",
-                    Toast.LENGTH_LONG
-                ).show()
+                showMaterialDialog(
+                    "Belum Ada Pelanggan",
+                    "Silakan tambahkan pelanggan terlebih dahulu dari menu Data Pelanggan.",
+                    "OK"
+                )
                 return@launch
             }
 
-            val customerNames = customers.map { it.namaLengkap }.toMutableList()
-            val adapter = ArrayAdapter(
-                this@BookingActivity,
-                android.R.layout.simple_list_item_1,
-                customerNames
-            )
-            lvCustomers.adapter = adapter
+            val customerNames = customers.map { it.namaLengkap }.toTypedArray()
 
-            val dialog = AlertDialog.Builder(this@BookingActivity)
+            MaterialAlertDialogBuilder(this@BookingActivity)
                 .setTitle("Pilih Pelanggan")
-                .setView(dialogView)
-                .setNegativeButton("Batal", null)
-                .create()
-
-            etSearch.addTextChangedListener(object : android.text.TextWatcher {
-                override fun afterTextChanged(s: android.text.Editable?) {
-                    val filtered = customers.filter {
-                        it.namaLengkap.contains(s.toString(), ignoreCase = true) ||
-                                it.nomorTelepon.contains(s.toString())
-                    }
-                    adapter.clear()
-                    adapter.addAll(filtered.map { it.namaLengkap })
-                    adapter.notifyDataSetChanged()
+                .setItems(customerNames) { _, which ->
+                    selectedCustomer = customers[which]
+                    updateCustomerButton()
                 }
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            })
+                .setNegativeButton("Batal", null)
+                .show()
+        }
+    }
 
-            lvCustomers.setOnItemClickListener { _, _, position, _ ->
-                val displayedName = adapter.getItem(position)
-                selectedCustomer = customers.find { it.namaLengkap == displayedName }
-                binding.btnSelectCustomer.text = "✓ ${selectedCustomer?.namaLengkap}"
-                dialog.dismiss()
+    private fun updateCustomerButton() {
+        selectedCustomer?.let { customer ->
+            binding.btnSelectCustomer.apply {
+                text = "✓ ${customer.namaLengkap}"
+                setIconResource(R.drawable.ic_check)
+                setIconTintResource(R.color.success)
             }
-
-            dialog.show()
+            checkIfReadyToBook()
         }
     }
 
@@ -110,11 +107,11 @@ class BookingActivity : AppCompatActivity() {
             }
 
             if (trips.isEmpty()) {
-                Toast.makeText(
-                    this@BookingActivity,
-                    "Belum ada perjalanan tersedia",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showMaterialDialog(
+                    "Belum Ada Perjalanan",
+                    "Silakan tambahkan perjalanan terlebih dahulu.",
+                    "OK"
+                )
                 return@launch
             }
 
@@ -122,12 +119,12 @@ class BookingActivity : AppCompatActivity() {
                 "${it.nomorPolisi} | ${it.asal} → ${it.tujuan}"
             }.toTypedArray()
 
-            AlertDialog.Builder(this@BookingActivity)
+            MaterialAlertDialogBuilder(this@BookingActivity)
                 .setTitle("Pilih Perjalanan")
                 .setItems(tripDisplay) { _, which ->
                     selectedTrip = trips[which]
                     selectedSeats.clear()
-                    binding.btnSelectTrip.text = "✓ ${tripDisplay[which]}"
+                    updateTripButton(tripDisplay[which])
                     loadSeats()
                 }
                 .setNegativeButton("Batal", null)
@@ -135,14 +132,23 @@ class BookingActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadSeats() {
-        if (selectedTrip == null) return
+    private fun updateTripButton(displayText: String) {
+        binding.btnSelectTrip.apply {
+            text = "✓ $displayText"
+            setIconResource(R.drawable.ic_check)
+            setIconTintResource(R.color.success)
+        }
+        checkIfReadyToBook()
+    }
 
-        lifecycleScope.launch {
-            allSeats = withContext(Dispatchers.IO) {
-                db.seatDao().getSeatsByTrip(selectedTrip!!.id)
+    private fun loadSeats() {
+        selectedTrip?.let { trip ->
+            lifecycleScope.launch {
+                allSeats = withContext(Dispatchers.IO) {
+                    db.seatDao().getSeatsByTrip(trip.id)
+                }
+                setupSeatsLayout()
             }
-            setupSeatsLayout()
         }
     }
 
@@ -152,18 +158,22 @@ class BookingActivity : AppCompatActivity() {
         binding.seatRow3.removeAllViews()
         binding.seatRow4.removeAllViews()
 
+        // Row 1: 1 | X | Driver
         addSeatButton(binding.seatRow1, 1)
         addPlaceholder(binding.seatRow1, "X")
-        addPlaceholder(binding.seatRow1, "Supir")
+        addPlaceholder(binding.seatRow1, "🚗 Supir")
 
+        // Row 2: 4 | 3 | 2
         addSeatButton(binding.seatRow2, 4)
         addSeatButton(binding.seatRow2, 3)
         addSeatButton(binding.seatRow2, 2)
 
+        // Row 3: 7 | 6 | 5
         addSeatButton(binding.seatRow3, 7)
         addSeatButton(binding.seatRow3, 6)
         addSeatButton(binding.seatRow3, 5)
 
+        // Row 4: 10 | 9 | 8
         addSeatButton(binding.seatRow4, 10)
         addSeatButton(binding.seatRow4, 9)
         addSeatButton(binding.seatRow4, 8)
@@ -176,30 +186,31 @@ class BookingActivity : AppCompatActivity() {
 
         val btn = Button(this).apply {
             text = seatNumber.toString()
-            layoutParams = LinearLayout.LayoutParams(0, 150).apply {
+            layoutParams = LinearLayout.LayoutParams(0, 160).apply {
                 weight = 1f
-                setMargins(4, 4, 4, 4)
+                setMargins(8, 8, 8, 8)
             }
-            textSize = 20f
+            textSize = 18f
+            setTextColor(Color.WHITE)
+            elevation = 4f
 
             when (seat.status) {
                 Constants.SEAT_STATUS_AVAILABLE -> {
-                    setBackgroundColor(Color.GREEN)
-                    setTextColor(Color.WHITE)
+                    setBackgroundColor(ContextCompat.getColor(context, R.color.status_available))
                     setOnClickListener {
                         if (selectedSeats.contains(seat)) {
                             selectedSeats.remove(seat)
-                            setBackgroundColor(Color.GREEN)
+                            setBackgroundColor(ContextCompat.getColor(context, R.color.status_available))
                         } else {
                             selectedSeats.add(seat)
-                            setBackgroundColor(Color.parseColor("#2196F3"))
+                            setBackgroundColor(ContextCompat.getColor(context, R.color.info))
                         }
                         updateSummary()
                     }
                 }
                 else -> {
-                    setBackgroundColor(Color.LTGRAY)
-                    setTextColor(Color.DKGRAY)
+                    setBackgroundColor(ContextCompat.getColor(context, R.color.light_gray))
+                    setTextColor(ContextCompat.getColor(context, R.color.dark_gray))
                     isEnabled = false
                 }
             }
@@ -211,14 +222,14 @@ class BookingActivity : AppCompatActivity() {
     private fun addPlaceholder(row: LinearLayout, label: String) {
         val placeholder = TextView(this).apply {
             text = label
-            layoutParams = LinearLayout.LayoutParams(0, 150).apply {
+            layoutParams = LinearLayout.LayoutParams(0, 160).apply {
                 weight = 1f
-                setMargins(4, 4, 4, 4)
+                setMargins(8, 8, 8, 8)
             }
             gravity = android.view.Gravity.CENTER
-            textSize = 18f
-            setBackgroundColor(Color.LTGRAY)
-            setTextColor(Color.BLACK)
+            textSize = 16f
+            setBackgroundColor(ContextCompat.getColor(context, R.color.lighter_gray))
+            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
         }
         row.addView(placeholder)
     }
@@ -232,37 +243,36 @@ class BookingActivity : AppCompatActivity() {
 
     private fun updateSummary() {
         binding.btnCreateBooking.isEnabled = selectedSeats.isNotEmpty()
+        checkIfReadyToBook()
+    }
+
+    private fun checkIfReadyToBook() {
+        binding.btnCreateBooking.isEnabled =
+            selectedCustomer != null &&
+                    selectedTrip != null &&
+                    selectedSeats.isNotEmpty()
     }
 
     private fun createBooking() {
-        if (selectedCustomer == null) {
-            Toast.makeText(this, "⚠️ Pilih pelanggan terlebih dahulu", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (selectedTrip == null) {
-            Toast.makeText(this, "⚠️ Pilih perjalanan terlebih dahulu", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        if (selectedSeats.isEmpty()) {
-            Toast.makeText(this, "⚠️ Pilih kursi terlebih dahulu", Toast.LENGTH_SHORT).show()
+        if (selectedCustomer == null || selectedTrip == null || selectedSeats.isEmpty()) {
+            Toast.makeText(this, "⚠️ Lengkapi semua pilihan", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val customer = selectedCustomer
-                    val trip = selectedTrip
-                    if (customer == null || trip == null) throw Exception("Data booking tidak lengkap")
+                    val customer = selectedCustomer!!
+                    val trip = selectedTrip!!
 
                     selectedSeats.forEach { seat ->
+                        // Update seat status
                         db.seatDao().update(seat.copy(
                             customerId = customer.id,
                             status = Constants.SEAT_STATUS_BOOKED
                         ))
 
+                        // Create ticket
                         db.ticketDao().insert(Ticket(
                             seatId = seat.id,
                             tripId = trip.id,
@@ -273,20 +283,34 @@ class BookingActivity : AppCompatActivity() {
                     }
                 }
 
-                Toast.makeText(
-                    this@BookingActivity,
-                    "✓ ${selectedSeats.size} booking berhasil dibuat!",
-                    Toast.LENGTH_LONG
-                ).show()
-                finish()
+                showSuccessDialog()
 
             } catch (e: Exception) {
                 Toast.makeText(
                     this@BookingActivity,
-                    "Gagal: ${e.message}",
+                    "❌ Gagal: ${e.message}",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
+    }
+
+    private fun showSuccessDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("✅ Booking Berhasil")
+            .setMessage("${selectedSeats.size} kursi berhasil di-booking untuk ${selectedCustomer?.namaLengkap}")
+            .setPositiveButton("OK") { _, _ ->
+                finish()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun showMaterialDialog(title: String, message: String, positiveText: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveText, null)
+            .show()
     }
 }

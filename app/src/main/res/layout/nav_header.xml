@@ -1,25 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="176dp"
-    android:background="#2196F3"
+    android:layout_height="200dp"
+    android:background="@drawable/nav_header_bg"
     android:gravity="bottom"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="@dimen/spacing_md"
+    android:theme="@style/ThemeOverlay.MaterialComponents.Dark">
+
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="@dimen/spacing_md"
+        android:src="@drawable/ic_bus"
+        android:contentDescription="App Logo"
+        app:tint="@color/white"
+        xmlns:app="http://schemas.android.com/apk/res-auto"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TRAVEL AGENT POS"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/white"
         android:textSize="24sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="v1.0"
-        android:textColor="#BBDEFB"
-        android:textSize="14sp" />
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:text="Sistem Manajemen Perjalanan"
+        android:textColor="@color/primary_light"
+        android:textSize="14sp"
+        android:alpha="0.87"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_sm"
+        android:text="v2.0"
+        android:textColor="@color/primary_light"
+        android:textSize="12sp"
+        android:alpha="0.6"/>
 
 </LinearLayout>

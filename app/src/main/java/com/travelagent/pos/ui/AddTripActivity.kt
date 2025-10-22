@@ -2,295 +2,341 @@ package com.travelagent.pos.ui
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import android.widget.*
-import com.travelagent.pos.R
-import com.travelagent.pos.data.AppDatabase
-import com.travelagent.pos.data.Trip
-import com.travelagent.pos.data.Driver
-import com.travelagent.pos.data.Vehicle
-import com.travelagent.pos.data.Seat
-import com.travelagent.pos.utils.Constants
-import com.travelagent.pos.utils.ErrorHandler
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.travelagent.pos.data.AppDatabase
+import com.travelagent.pos.data.Driver
+import com.travelagent.pos.data.Seat
+import com.travelagent.pos.data.Trip
+import com.travelagent.pos.data.Vehicle
+import com.travelagent.pos.databinding.ActivityAddTripBinding
+import com.travelagent.pos.utils.Constants
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AddTripActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityAddTripBinding
     private lateinit var db: AppDatabase
+
     private var selectedDate: Long = 0
     private var selectedDriver: Driver? = null
     private var selectedVehicle: Vehicle? = null
-    private var tripId: Int? = null // For edit mode
+    private var tripId: Int? = null
     private var isEditMode = false
+
+    private val cities = arrayOf("Sibolga", "Medan", "Padang", "Pekanbaru", "Jambi")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_trip)
+        binding = ActivityAddTripBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         db = AppDatabase.getDatabase(this)
 
-        // Check if this is edit mode
+        // Check if edit mode
         tripId = intent.getIntExtra("tripId", -1).takeIf { it != -1 }
         isEditMode = tripId != null
 
-        val spinnerAsal = findViewById<Spinner>(R.id.spinnerAsal)
-        val spinnerTujuan = findViewById<Spinner>(R.id.spinnerTujuan)
-        val etDate = findViewById<EditText>(R.id.etDate)
-        val spinnerDriver = findViewById<Spinner>(R.id.spinnerDriver)
-        val etDriverPhone = findViewById<EditText>(R.id.etDriverPhone)
-        val spinnerPlate = findViewById<Spinner>(R.id.spinnerPlate)
-        val etPrice = findViewById<EditText>(R.id.etPrice)
-        val btnSave = findViewById<Button>(R.id.btnSave)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        setupToolbar()
+        setupCityInputs()
+        setupDatePicker()
+        setupDriverAndVehicleInputs()
+        setupSaveButton()
 
-        // Update title if edit mode
         if (isEditMode) {
-            supportActionBar?.title = "Edit Perjalanan"
-            btnSave.text = "💾 Update Perjalanan"
+            loadTripData()
+        }
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = if (isEditMode) "Edit Perjalanan" else "Tambah Perjalanan"
+        binding.toolbar.setNavigationOnClickListener { finish() }
+    }
+
+    private fun setupCityInputs() {
+        val cityAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, cities)
+
+        binding.actvOrigin.setAdapter(cityAdapter)
+        binding.actvDestination.setAdapter(cityAdapter)
+
+        // Set threshold to show dropdown immediately
+        binding.actvOrigin.threshold = 1
+        binding.actvDestination.threshold = 1
+    }
+
+    private fun setupDatePicker() {
+        binding.etDate.setOnClickListener {
+            showDatePicker()
         }
 
-        // Setup City Spinners
-        val cities = arrayOf("Sibolga", "Medan")
-        val cityAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, cities)
-        cityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerAsal.adapter = cityAdapter
-        spinnerTujuan.adapter = cityAdapter
+        binding.etDate.isFocusable = false
+        binding.etDate.isClickable = true
+    }
 
-        // Load Drivers and Vehicles
+    private fun showDatePicker() {
+        val calendar = Calendar.getInstance()
+        if (selectedDate > 0) {
+            calendar.timeInMillis = selectedDate
+        }
+
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                calendar.set(year, month, day)
+                selectedDate = calendar.timeInMillis
+
+                val sdf = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+                binding.etDate.setText(sdf.format(calendar.time))
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.minDate = System.currentTimeMillis()
+            show()
+        }
+    }
+
+    private fun setupDriverAndVehicleInputs() {
         lifecycleScope.launch {
             val drivers = db.driverDao().getAllDrivers()
             val vehicles = db.vehicleDao().getAllVehicles()
 
-            if (drivers.isEmpty()) {
-                Toast.makeText(
-                    this@AddTripActivity,
-                    "Tambahkan sopir terlebih dahulu di menu Data Sopir & Kendaraan",
-                    Toast.LENGTH_LONG
-                ).show()
+            if (drivers.isEmpty() || vehicles.isEmpty()) {
+                showInfoDialog()
             }
 
-            if (vehicles.isEmpty()) {
-                Toast.makeText(
-                    this@AddTripActivity,
-                    "Tambahkan kendaraan terlebih dahulu di menu Data Sopir & Kendaraan",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
-            // Setup Driver Spinner
-            val driverNames = drivers.map { it.namaSopir }
-            val driverAdapter = ArrayAdapter(
-                this@AddTripActivity,
-                android.R.layout.simple_spinner_item,
-                driverNames
-            )
-            driverAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerDriver.adapter = driverAdapter
-
-            spinnerDriver.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: android.view.View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    if (drivers.isNotEmpty()) {
-                        selectedDriver = drivers[position]
-                        etDriverPhone.setText(selectedDriver?.nomorTelepon)
-                    }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-            // Setup Vehicle Spinner
-            val plateNumbers = vehicles.map { it.nomorPolisi }
-            val vehicleAdapter = ArrayAdapter(
-                this@AddTripActivity,
-                android.R.layout.simple_spinner_item,
-                plateNumbers
-            )
-            vehicleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerPlate.adapter = vehicleAdapter
-
-            spinnerPlate.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: android.view.View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    if (vehicles.isNotEmpty()) {
-                        selectedVehicle = vehicles[position]
-                    }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-            // Load existing trip data if edit mode
-            if (isEditMode) {
-                loadTripData(spinnerAsal, spinnerTujuan, etDate, etPrice, drivers, vehicles,
-                    spinnerDriver, spinnerPlate)
-            }
+            setupDriverDropdown(drivers)
+            setupVehicleDropdown(vehicles)
         }
-
-        etDate.setOnClickListener {
-            val cal = Calendar.getInstance()
-            if (selectedDate > 0) cal.timeInMillis = selectedDate
-
-            DatePickerDialog(
-                this,
-                { _, year, month, day ->
-                    cal.set(year, month, day)
-                    selectedDate = cal.timeInMillis
-                    etDate.setText("$day/${month + 1}/$year")
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-
-        btnSave.setOnClickListener {
-            val asal = spinnerAsal.selectedItem.toString()
-            val tujuan = spinnerTujuan.selectedItem.toString()
-            val price = etPrice.text.toString().toDoubleOrNull() ?: 0.0
-
-            if (selectedDriver == null || selectedVehicle == null || selectedDate == 0L) {
-                Toast.makeText(this, "Lengkapi semua field", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (price <= 0) {
-                Toast.makeText(this, "Masukkan harga yang valid", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (isEditMode) {
-                updateTrip(asal, tujuan, price)
-            } else {
-                createTrip(asal, tujuan, price)
-            }
-        }
-
-        btnBack.setOnClickListener { finish() }
     }
 
-    private fun loadTripData(
-        spinnerAsal: Spinner,
-        spinnerTujuan: Spinner,
-        etDate: EditText,
-        etPrice: EditText,
-        drivers: List<Driver>,
-        vehicles: List<Vehicle>,
-        spinnerDriver: Spinner,
-        spinnerPlate: Spinner
-    ) {
+    private fun setupDriverDropdown(drivers: List<Driver>) {
+        val driverNames = drivers.map { it.namaSopir }
+        val driverAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            driverNames
+        )
+
+        binding.actvDriver.setAdapter(driverAdapter)
+        binding.actvDriver.threshold = 1
+
+        binding.actvDriver.setOnItemClickListener { _, _, position, _ ->
+            if (drivers.isNotEmpty()) {
+                selectedDriver = drivers[position]
+                binding.etDriverPhone.setText(selectedDriver?.nomorTelepon)
+            }
+        }
+    }
+
+    private fun setupVehicleDropdown(vehicles: List<Vehicle>) {
+        val plateNumbers = vehicles.map { it.nomorPolisi }
+        val vehicleAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            plateNumbers
+        )
+
+        binding.actvVehicle.setAdapter(vehicleAdapter)
+        binding.actvVehicle.threshold = 1
+
+        binding.actvVehicle.setOnItemClickListener { _, _, position, _ ->
+            if (vehicles.isNotEmpty()) {
+                selectedVehicle = vehicles[position]
+            }
+        }
+    }
+
+    private fun setupSaveButton() {
+        binding.btnSave.setOnClickListener {
+            if (validateInput()) {
+                if (isEditMode) {
+                    updateTrip()
+                } else {
+                    createTrip()
+                }
+            }
+        }
+    }
+
+    private fun validateInput(): Boolean {
+        val origin = binding.actvOrigin.text.toString().trim()
+        val destination = binding.actvDestination.text.toString().trim()
+        val price = binding.etPrice.text.toString().toDoubleOrNull()
+
+        when {
+            origin.isEmpty() -> {
+                binding.actvOrigin.error = "Pilih kota asal"
+                return false
+            }
+            destination.isEmpty() -> {
+                binding.actvDestination.error = "Pilih kota tujuan"
+                return false
+            }
+            origin == destination -> {
+                binding.actvDestination.error = "Kota tujuan harus berbeda"
+                return false
+            }
+            selectedDate == 0L -> {
+                Toast.makeText(this, "Pilih tanggal keberangkatan", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            selectedDriver == null -> {
+                Toast.makeText(this, "Pilih sopir", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            selectedVehicle == null -> {
+                Toast.makeText(this, "Pilih kendaraan", Toast.LENGTH_SHORT).show()
+                return false
+            }
+            price == null || price <= 0 -> {
+                binding.etPrice.error = "Masukkan harga yang valid"
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun createTrip() {
+        val origin = binding.actvOrigin.text.toString().trim()
+        val destination = binding.actvDestination.text.toString().trim()
+        val price = binding.etPrice.text.toString().toDouble()
+
         lifecycleScope.launch {
-            val existingTripId = tripId
-            if (existingTripId == null) return@launch
+            try {
+                val driver = selectedDriver!!
+                val vehicle = selectedVehicle!!
+
+                val trip = Trip(
+                    asal = origin,
+                    tujuan = destination,
+                    tanggal = selectedDate,
+                    namaSopir = driver.namaSopir,
+                    nomorTeleponSopir = driver.nomorTelepon,
+                    nomorPolisi = vehicle.nomorPolisi,
+                    ongkos = price
+                )
+
+                val newTripId = db.tripDao().insert(trip).toInt()
+
+                // Create seats automatically
+                repeat(Constants.DEFAULT_SEAT_COUNT) { i ->
+                    db.seatDao().insert(
+                        Seat(
+                            tripId = newTripId,
+                            nomorKursi = i + 1,
+                            customerId = null,
+                            status = Constants.SEAT_STATUS_AVAILABLE
+                        )
+                    )
+                }
+
+                showSuccessMessage("Perjalanan berhasil ditambahkan")
+                finish()
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@AddTripActivity,
+                    "❌ Gagal: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun updateTrip() {
+        val origin = binding.actvOrigin.text.toString().trim()
+        val destination = binding.actvDestination.text.toString().trim()
+        val price = binding.etPrice.text.toString().toDouble()
+
+        lifecycleScope.launch {
+            try {
+                val existingTripId = tripId ?: return@launch
+                val driver = selectedDriver!!
+                val vehicle = selectedVehicle!!
+
+                val trip = Trip(
+                    id = existingTripId,
+                    asal = origin,
+                    tujuan = destination,
+                    tanggal = selectedDate,
+                    namaSopir = driver.namaSopir,
+                    nomorTeleponSopir = driver.nomorTelepon,
+                    nomorPolisi = vehicle.nomorPolisi,
+                    ongkos = price
+                )
+
+                db.tripDao().update(trip)
+
+                showSuccessMessage("Perjalanan berhasil diupdate")
+                finish()
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@AddTripActivity,
+                    "❌ Gagal: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun loadTripData() {
+        lifecycleScope.launch {
+            val existingTripId = tripId ?: return@launch
             val trip = db.tripDao().getTripById(existingTripId) ?: return@launch
 
-            selectedDate = trip.tanggal
-
-            // Set asal
-            val cities = arrayOf("Sibolga", "Medan")
-            spinnerAsal.setSelection(cities.indexOf(trip.asal))
-            spinnerTujuan.setSelection(cities.indexOf(trip.tujuan))
-
             // Set date
-            val cal = Calendar.getInstance()
-            cal.timeInMillis = trip.tanggal
-            etDate.setText("${cal.get(Calendar.DAY_OF_MONTH)}/${cal.get(Calendar.MONTH) + 1}/${cal.get(Calendar.YEAR)}")
+            selectedDate = trip.tanggal
+            val sdf = SimpleDateFormat("dd MMMM yyyy", Locale("id", "ID"))
+            binding.etDate.setText(sdf.format(Date(trip.tanggal)))
 
-            // Set driver
-            val driverIndex = drivers.indexOfFirst { it.namaSopir == trip.namaSopir }
-            if (driverIndex >= 0) {
-                spinnerDriver.setSelection(driverIndex)
-            }
-
-            // Set vehicle
-            val vehicleIndex = vehicles.indexOfFirst { it.nomorPolisi == trip.nomorPolisi }
-            if (vehicleIndex >= 0) {
-                spinnerPlate.setSelection(vehicleIndex)
-            }
+            // Set origin and destination
+            binding.actvOrigin.setText(trip.asal, false)
+            binding.actvDestination.setText(trip.tujuan, false)
 
             // Set price
-            etPrice.setText(trip.ongkos.toInt().toString())
+            binding.etPrice.setText(trip.ongkos.toInt().toString())
+
+            // Load and set driver
+            val drivers = db.driverDao().getAllDrivers()
+            val driver = drivers.find { it.namaSopir == trip.namaSopir }
+            if (driver != null) {
+                selectedDriver = driver
+                binding.actvDriver.setText(driver.namaSopir, false)
+                binding.etDriverPhone.setText(driver.nomorTelepon)
+            }
+
+            // Load and set vehicle
+            val vehicles = db.vehicleDao().getAllVehicles()
+            val vehicle = vehicles.find { it.nomorPolisi == trip.nomorPolisi }
+            if (vehicle != null) {
+                selectedVehicle = vehicle
+                binding.actvVehicle.setText(vehicle.nomorPolisi, false)
+            }
         }
     }
 
-    private fun createTrip(asal: String, tujuan: String, price: Double) {
-        lifecycleScope.launch {
-            val driver = selectedDriver
-            val vehicle = selectedVehicle
-            if (driver == null || vehicle == null) {
-                Toast.makeText(this@AddTripActivity, "Pilih sopir dan kendaraan", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            val trip = Trip(
-                asal = asal,
-                tujuan = tujuan,
-                tanggal = selectedDate,
-                namaSopir = driver.namaSopir,
-                nomorTeleponSopir = driver.nomorTelepon,
-                nomorPolisi = vehicle.nomorPolisi,
-                ongkos = price
-            )
-            val newTripId = db.tripDao().insert(trip).toInt()
-
-            // Create seats automatically
-            repeat(Constants.DEFAULT_SEAT_COUNT) { i ->
-                db.seatDao().insert(
-                    Seat(
-                        tripId = newTripId,
-                        nomorKursi = i + 1,
-                        customerId = null,
-                        status = Constants.SEAT_STATUS_AVAILABLE
-                    )
-                )
-            }
-
-            Toast.makeText(
-                this@AddTripActivity,
-                "Perjalanan berhasil ditambahkan",
-                Toast.LENGTH_SHORT
-            ).show()
-            finish()
-        }
+    private fun showSuccessMessage(message: String) {
+        Toast.makeText(
+            this,
+            "✅ $message",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
-    private fun updateTrip(asal: String, tujuan: String, price: Double) {
-        lifecycleScope.launch {
-            val existingTripId = tripId
-            val driver = selectedDriver
-            val vehicle = selectedVehicle
-            if (existingTripId == null || driver == null || vehicle == null) {
-                Toast.makeText(this@AddTripActivity, "Data tidak lengkap untuk update", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-
-            val trip = Trip(
-                id = existingTripId,
-                asal = asal,
-                tujuan = tujuan,
-                tanggal = selectedDate,
-                namaSopir = driver.namaSopir,
-                nomorTeleponSopir = driver.nomorTelepon,
-                nomorPolisi = vehicle.nomorPolisi,
-                ongkos = price
-            )
-            db.tripDao().update(trip)
-
-            Toast.makeText(
-                this@AddTripActivity,
-                "✓ Perjalanan berhasil diupdate",
-                Toast.LENGTH_SHORT
-            ).show()
-            finish()
-        }
+    private fun showInfoDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("⚠️ Perhatian")
+            .setMessage("Pastikan Anda sudah menambahkan data Sopir dan Kendaraan terlebih dahulu di menu 'Data Sopir & Kendaraan'.")
+            .setPositiveButton("OK", null)
+            .show()
     }
 }

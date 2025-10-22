@@ -1,24 +1,44 @@
 package com.travelagent.pos
+
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import com.travelagent.pos.databinding.ActivityMainBinding
 import com.travelagent.pos.ui.*
+
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.btnMenu.setOnClickListener {
-            binding.drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
+
+        setupToolbar()
+        setupNavigationDrawer()
+
+        // Load initial fragment
+        if (savedInstanceState == null) {
+            loadTripListFragment()
         }
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        binding.toolbar.setNavigationOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun setupNavigationDrawer() {
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_trips -> {
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, TripListFragment())
-                        .commit()
+                    loadTripListFragment()
+                    binding.toolbar.title = "Data Perjalanan"
                 }
                 R.id.nav_customers -> {
                     startActivity(Intent(this, CustomerListActivity::class.java))
@@ -45,14 +65,25 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.closeDrawers()
             true
         }
+    }
+
+    private fun loadTripListFragment() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, TripListFragment())
             .commit()
     }
+
     override fun onResume() {
         super.onResume()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, TripListFragment())
-            .commit()
+        // Refresh fragment if needed
+        loadTripListFragment()
+    }
+
+    override fun onBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
     }
 }

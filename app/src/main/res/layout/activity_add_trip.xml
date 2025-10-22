@@ -1,181 +1,253 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/background">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#2196F3"
-        android:gravity="center_vertical">
+        android:elevation="0dp">
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_revert"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/info"
+            android:elevation="@dimen/toolbar_elevation"
+            app:title="Tambah Perjalanan"
+            app:titleTextColor="@color/white"
+            app:navigationIcon="@drawable/ic_back"
+            app:navigationIconTint="@color/white"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tambah Perjalanan"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:gravity="center" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <View
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
-
-    </LinearLayout>
-
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_md">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Asal"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp" />
-
-            <Spinner
-                android:id="@+id/spinnerAsal"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tujuan"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
-
-            <Spinner
-                android:id="@+id/spinnerTujuan"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tanggal"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
-
-            <EditText
-                android:id="@+id/etDate"
+            <!-- Route Section -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Pilih tanggal"
-                android:focusable="false"
-                android:clickable="true"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp"
-                android:drawableRight="@android:drawable/ic_menu_my_calendar" />
+                android:layout_marginBottom="@dimen/spacing_md"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sopir"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
 
-            <Spinner
-                android:id="@+id/spinnerDriver"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="RUTE PERJALANAN"
+                        android:textAppearance="@style/TextAppearance.App.SectionHeader"
+                        android:layout_marginBottom="@dimen/spacing_md"/>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Kota Asal"
+                        app:startIconDrawable="@drawable/ic_location"
+                        app:startIconTint="@color/primary">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actvOrigin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Kota Tujuan"
+                        app:startIconDrawable="@drawable/ic_location"
+                        app:startIconTint="@color/primary">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actvDestination"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Tanggal Keberangkatan"
+                        app:startIconDrawable="@drawable/ic_calendar"
+                        app:startIconTint="@color/primary">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:inputType="none"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Driver & Vehicle Section -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nomor Telepon Sopir (auto)"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                android:layout_marginBottom="@dimen/spacing_md"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation">
 
-            <EditText
-                android:id="@+id/etDriverPhone"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SOPIR &amp; KENDARAAN"
+                        android:textAppearance="@style/TextAppearance.App.SectionHeader"
+                        android:layout_marginBottom="@dimen/spacing_md"/>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Pilih Sopir"
+                        app:startIconDrawable="@drawable/ic_driver"
+                        app:startIconTint="@color/primary">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actvDriver"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Nomor Telepon"
+                        app:startIconDrawable="@drawable/ic_phone"
+                        app:startIconTint="@color/primary"
+                        android:enabled="false">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDriverPhone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="phone"
+                            android:enabled="false"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Pilih Kendaraan"
+                        app:startIconDrawable="@drawable/ic_bus"
+                        app:startIconTint="@color/primary">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/actvVehicle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Pricing Section -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Otomatis terisi"
-                android:enabled="false"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
+                android:layout_marginBottom="@dimen/spacing_xl"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nomor Polisi"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
 
-            <Spinner
-                android:id="@+id/spinnerPlate"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HARGA TIKET"
+                        android:textAppearance="@style/TextAppearance.App.SectionHeader"
+                        android:layout_marginBottom="@dimen/spacing_md"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ongkos (Rp)"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.App.TextInputLayout"
+                        android:hint="Harga per Kursi"
+                        app:prefixText="Rp "
+                        app:helperText="Contoh: 150000">
 
-            <EditText
-                android:id="@+id/etPrice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="100000"
-                android:inputType="number"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
-                android:layout_marginTop="4dp" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrice"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <Button
+    <!-- Bottom Action Button -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_margin="16dp"
-        android:text="💾 Simpan Perjalanan"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_margin="@dimen/spacing_md"
+        android:layout_gravity="bottom"
+        android:text="Simpan Perjalanan"
         android:textSize="16sp"
-        android:backgroundTint="#2196F3" />
+        android:textStyle="bold"
+        style="@style/Widget.App.Button.Success"
+        app:icon="@drawable/ic_save"
+        app:iconGravity="textStart"
+        app:cornerRadius="12dp"
+        android:elevation="8dp"/>
 
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
