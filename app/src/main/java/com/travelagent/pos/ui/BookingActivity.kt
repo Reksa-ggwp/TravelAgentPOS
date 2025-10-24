@@ -1,12 +1,12 @@
 package com.travelagent.pos.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -57,7 +57,6 @@ class BookingActivity : AppCompatActivity() {
         binding.btnSelectTrip.setOnClickListener { selectTrip() }
         binding.btnCreateBooking.setOnClickListener { createBooking() }
 
-        // Initially disable booking button
         binding.btnCreateBooking.isEnabled = false
     }
 
@@ -261,6 +260,8 @@ class BookingActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
+                val createdTicketIds = mutableListOf<Int>()
+
                 withContext(Dispatchers.IO) {
                     val customer = selectedCustomer!!
                     val trip = selectedTrip!!
@@ -273,17 +274,19 @@ class BookingActivity : AppCompatActivity() {
                         ))
 
                         // Create ticket
-                        db.ticketDao().insert(Ticket(
+                        val ticketId = db.ticketDao().insert(Ticket(
                             seatId = seat.id,
                             tripId = trip.id,
                             customerId = customer.id,
                             ongkos = trip.ongkos,
                             status = Constants.TICKET_STATUS_PENDING
                         ))
+
+                        createdTicketIds.add(ticketId.toInt())
                     }
                 }
 
-                showSuccessDialog()
+                showSuccessDialog(createdTicketIds)
 
             } catch (e: Exception) {
                 Toast.makeText(
@@ -295,11 +298,20 @@ class BookingActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSuccessDialog() {
+    private fun showSuccessDialog(ticketIds: List<Int>) {
         MaterialAlertDialogBuilder(this)
             .setTitle("✅ Booking Berhasil")
-            .setMessage("${selectedSeats.size} kursi berhasil di-booking untuk ${selectedCustomer?.namaLengkap}")
-            .setPositiveButton("OK") { _, _ ->
+            .setMessage("${selectedSeats.size} kursi berhasil di-booking untuk ${selectedCustomer?.namaLengkap}\n\nApakah Anda ingin mencetak tiket sekarang?")
+            .setPositiveButton("Ya, Cetak") { _, _ ->
+                // Open ticket print for first ticket
+                if (ticketIds.isNotEmpty()) {
+                    val intent = Intent(this, TicketPrintActivity::class.java)
+                    intent.putExtra("ticketId", ticketIds[0])
+                    startActivity(intent)
+                }
+                finish()
+            }
+            .setNegativeButton("Nanti Saja") { _, _ ->
                 finish()
             }
             .setCancelable(false)

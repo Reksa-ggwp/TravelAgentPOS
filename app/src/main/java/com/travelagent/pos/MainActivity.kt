@@ -49,6 +49,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_booking -> {
                     startActivity(Intent(this, BookingActivity::class.java))
                 }
+                R.id.nav_payments -> {
+                    startActivity(Intent(this, PaymentHistoryActivity::class.java))
+                }
                 R.id.nav_export -> {
                     startActivity(Intent(this, ExportActivity::class.java))
                 }

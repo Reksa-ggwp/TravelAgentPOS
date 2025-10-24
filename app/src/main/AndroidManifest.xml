@@ -110,6 +110,12 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
+        <!-- Payment History Activity (NEW) -->
+        <activity
+            android:name=".ui.PaymentHistoryActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
         <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"

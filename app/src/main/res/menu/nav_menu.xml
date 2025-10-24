@@ -17,6 +17,10 @@
         android:icon="@android:drawable/ic_menu_add"
         android:title="Booking Baru" />
     <item
+        android:id="@+id/nav_payments"
+        android:icon="@drawable/ic_payment"
+        android:title="Riwayat Pembayaran" />
+    <item
         android:id="@+id/nav_export"
         android:icon="@android:drawable/ic_menu_save"
         android:title="Export Data" />
