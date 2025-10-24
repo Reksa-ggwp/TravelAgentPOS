@@ -3,7 +3,6 @@ package com.travelagent.pos.ui
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -13,7 +12,8 @@ import com.travelagent.pos.databinding.ActivityTicketPrintBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.repository.PaymentRepository
 import com.travelagent.pos.repository.RepositoryResult
-import com.travelagent.pos.utils.ReceiptPrinter
+import com.travelagent.pos.utils.ThermalPrinterManager
+import com.travelagent.pos.utils.TicketExportManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,7 +24,8 @@ class TicketPrintActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTicketPrintBinding
     private lateinit var db: AppDatabase
     private lateinit var paymentRepository: PaymentRepository
-    private lateinit var receiptPrinter: ReceiptPrinter
+    private lateinit var thermalPrinter: ThermalPrinterManager
+    private lateinit var exportManager: TicketExportManager
 
     private var ticketId: Int = 0
     private lateinit var ticket: Ticket
@@ -39,16 +40,10 @@ class TicketPrintActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         db = AppDatabase.getDatabase(this)
-        val customerRepo = CustomerRepository(
-            db.customerDao(),
-            db.customerStatsDao()
-        )
-        paymentRepository = PaymentRepository(
-            db.paymentDao(),
-            db.ticketDao(),
-            customerRepo
-        )
-        receiptPrinter = ReceiptPrinter(this)
+        val customerRepo = CustomerRepository(db.customerDao(), db.customerStatsDao())
+        paymentRepository = PaymentRepository(db.paymentDao(), db.ticketDao(), customerRepo)
+        thermalPrinter = ThermalPrinterManager(this)
+        exportManager = TicketExportManager(this)
 
         ticketId = intent.getIntExtra("ticketId", 0)
 
@@ -67,6 +62,10 @@ class TicketPrintActivity : AppCompatActivity() {
         binding.btnPrint.setOnClickListener { printTicket() }
         binding.btnStamp.setOnClickListener { stampTicket() }
         binding.btnMarkPaid.setOnClickListener { showPaymentDialog() }
+        binding.btnExport.setOnClickListener { exportTicket() }
+        binding.btnPrinterSettings.setOnClickListener {
+            startActivity(Intent(this, PrinterSettingsActivity::class.java))
+        }
     }
 
     private fun loadTicketDetails() {
@@ -94,11 +93,7 @@ class TicketPrintActivity : AppCompatActivity() {
 
                 updateUI()
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@TicketPrintActivity,
-                    "Error: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 finish()
             }
         }
@@ -201,8 +196,136 @@ class TicketPrintActivity : AppCompatActivity() {
             return
         }
 
+        // Check if printer is configured
+        if (thermalPrinter.getSavedPrinterAddress() == null) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Printer Not Configured")
+                .setMessage("Please configure your thermal printer first.")
+                .setPositiveButton("Open Settings") { _, _ ->
+                    startActivity(Intent(this, PrinterSettingsActivity::class.java))
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+            return
+        }
+
+        binding.btnPrint.isEnabled = false
+        binding.btnPrint.text = "Printing..."
+
+        lifecycleScope.launch {
+            try {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id"))
+                val paymentHistory = payments.map {
+                    "${formatCurrency(it.amount)} - ${it.paymentMethod} - ${sdf.format(Date(it.timestamp))}"
+                }
+
+                val formattedTicket = thermalPrinter.formatTicketForThermal(
+                    ticketId = ticket.id,
+                    customerName = customer.namaLengkap,
+                    phone = customer.nomorTelepon,
+                    address = customer.alamat,
+                    origin = trip.asal,
+                    destination = trip.tujuan,
+                    date = sdf.format(Date(trip.tanggal)),
+                    plateNumber = trip.nomorPolisi,
+                    driverName = trip.namaSopir,
+                    seatNumber = seat.nomorKursi,
+                    price = ticket.ongkos,
+                    totalPaid = ticket.totalPaid,
+                    status = ticket.status,
+                    isStamped = ticket.isStamped,
+                    payments = paymentHistory
+                )
+
+                val result = thermalPrinter.printTicket(formattedTicket)
+
+                binding.btnPrint.isEnabled = true
+                binding.btnPrint.text = "🖨️ Print Tiket"
+
+                result.fold(
+                    onSuccess = {
+                        Toast.makeText(this@TicketPrintActivity, "✅ Tiket berhasil dicetak!", Toast.LENGTH_SHORT).show()
+                    },
+                    onFailure = { error ->
+                        MaterialAlertDialogBuilder(this@TicketPrintActivity)
+                            .setTitle("Print Failed")
+                            .setMessage("Error: ${error.message}\n\nTroubleshooting:\n• Check printer is ON\n• Check paper loaded\n• Check Bluetooth connection\n• Try printer settings")
+                            .setPositiveButton("Printer Settings") { _, _ ->
+                                startActivity(Intent(this@TicketPrintActivity, PrinterSettingsActivity::class.java))
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                )
+            } catch (e: Exception) {
+                binding.btnPrint.isEnabled = true
+                binding.btnPrint.text = "🖨️ Print Tiket"
+                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun exportTicket() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Export Ticket")
+            .setMessage("Choose export format:")
+            .setPositiveButton("PDF") { _, _ ->
+                exportToPDF()
+            }
+            .setNeutralButton("Text") { _, _ ->
+                exportToText()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun exportToPDF() {
+        binding.btnExport.isEnabled = false
+        binding.btnExport.text = "Exporting..."
+
+        lifecycleScope.launch {
+            try {
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("id"))
+                val result = exportManager.exportTicketToPDF(
+                    ticketId = ticket.id,
+                    customerName = customer.namaLengkap,
+                    phone = customer.nomorTelepon,
+                    address = customer.alamat,
+                    origin = trip.asal,
+                    destination = trip.tujuan,
+                    date = sdf.format(Date(trip.tanggal)),
+                    plateNumber = trip.nomorPolisi,
+                    driverName = trip.namaSopir,
+                    seatNumber = seat.nomorKursi,
+                    price = ticket.ongkos,
+                    totalPaid = ticket.totalPaid,
+                    status = ticket.status,
+                    isStamped = ticket.isStamped
+                )
+
+                binding.btnExport.isEnabled = true
+                binding.btnExport.text = "📤 Export Tiket"
+
+                result.fold(
+                    onSuccess = { file ->
+                        Toast.makeText(this@TicketPrintActivity, "✅ Exported: ${file.name}", Toast.LENGTH_SHORT).show()
+                        exportManager.shareFile(file)
+                    },
+                    onFailure = { error ->
+                        Toast.makeText(this@TicketPrintActivity, "❌ Export failed: ${error.message}", Toast.LENGTH_LONG).show()
+                    }
+                )
+            } catch (e: Exception) {
+                binding.btnExport.isEnabled = true
+                binding.btnExport.text = "📤 Export Tiket"
+                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun exportToText() {
         val receipt = generateReceiptText()
-        receiptPrinter.shareReceipt(receipt)
+        exportManager.shareText(receipt, "Ticket_${ticket.id}")
     }
 
     private fun stampTicket() {
@@ -222,19 +345,10 @@ class TicketPrintActivity : AppCompatActivity() {
                             ticket = ticket.copy(isStamped = true)
                         }
 
-                        Toast.makeText(
-                            this@TicketPrintActivity,
-                            "✓ Tiket berhasil di-stamp",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
+                        Toast.makeText(this@TicketPrintActivity, "✓ Tiket berhasil di-stamp", Toast.LENGTH_SHORT).show()
                         updateUI()
                     } catch (e: Exception) {
-                        Toast.makeText(
-                            this@TicketPrintActivity,
-                            "Error: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -260,10 +374,8 @@ class TicketPrintActivity : AppCompatActivity() {
         val spinnerMethod = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerPaymentMethod)
         val etNotes = dialogView.findViewById<android.widget.EditText>(R.id.etPaymentNotes)
 
-        // Set default amount to remaining
         etAmount.setText(remaining.toInt().toString())
 
-        // Setup payment method spinner
         val methods = arrayOf("Cash", "Transfer Bank", "E-Wallet")
         val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_spinner_item, methods)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

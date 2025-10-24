@@ -32,9 +32,14 @@
             android:textColor="#FFFFFF"
             android:gravity="center" />
 
-        <View
+        <ImageButton
+            android:id="@+id/btnPrinterSettings"
             android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_height="48dp"
+            android:src="@drawable/ic_info"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
+            android:contentDescription="Printer Settings" />
 
     </LinearLayout>
 
@@ -80,9 +85,18 @@
                 android:id="@+id/btnPrint"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="🖨️ Print Tiket"
+                android:text="🖨️ Print Tiket (Thermal)"
                 android:textSize="16sp"
                 android:backgroundTint="#2196F3"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btnExport"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="📤 Export Tiket"
+                android:textSize="16sp"
+                android:backgroundTint="#00BCD4"
                 android:layout_marginBottom="12dp" />
 
             <Button

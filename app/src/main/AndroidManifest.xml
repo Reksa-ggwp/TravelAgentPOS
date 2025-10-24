@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
         tools:ignore="ScopedStorage" />
@@ -29,7 +31,7 @@
             android:name=".ui.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.App.Splash"
-            android:screenOrientation="portrait">
+            android:screenOrientation="unspecified">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -110,9 +112,21 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
-        <!-- Payment History Activity (NEW) -->
+        <!-- Payment History Activity -->
         <activity
             android:name=".ui.PaymentHistoryActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- NEW: Printer Settings Activity -->
+        <activity
+            android:name=".ui.PrinterSettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- NEW: Reprint Tickets Activity -->
+        <activity
+            android:name=".ui.ReprintTicketsActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
