@@ -124,12 +124,6 @@
             android:exported="false"
             android:parentActivityName=".MainActivity" />
 
-        <!-- NEW: Reprint Tickets Activity -->
-        <activity
-            android:name=".ui.ReprintTicketsActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity" />
-
         <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"

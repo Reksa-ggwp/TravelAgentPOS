@@ -9,7 +9,9 @@ import com.travelagent.pos.databinding.ItemPaymentHistoryBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PaymentHistoryAdapter : ListAdapter<PaymentHistoryItem, PaymentHistoryAdapter.ViewHolder>(DiffCallback()) {
+class PaymentHistoryAdapter(
+    private val onItemClick: (PaymentHistoryItem) -> Unit = {}
+) : ListAdapter<PaymentHistoryItem, PaymentHistoryAdapter.ViewHolder>(DiffCallback()) {
 
     inner class ViewHolder(private val binding: ItemPaymentHistoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -27,6 +29,11 @@ class PaymentHistoryAdapter : ListAdapter<PaymentHistoryItem, PaymentHistoryAdap
                     tvNotes.visibility = android.view.View.VISIBLE
                 } else {
                     tvNotes.visibility = android.view.View.GONE
+                }
+
+                // NEW: Click handler to reprint ticket
+                root.setOnClickListener {
+                    onItemClick(item)
                 }
             }
         }

@@ -7,7 +7,10 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="3dp">
+    app:cardElevation="3dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -48,15 +51,32 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvAmount"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/success"
-                android:layout_gravity="center_vertical"
-                tools:text="Rp 150.000"/>
+                android:orientation="vertical"
+                android:gravity="end"
+                android:layout_gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/success"
+                    tools:text="Rp 150.000"/>
+
+                <!-- Indicator that item is clickable -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🖨️ Tap to reprint"
+                    android:textSize="10sp"
+                    android:textColor="@color/info"
+                    android:layout_marginTop="2dp"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 

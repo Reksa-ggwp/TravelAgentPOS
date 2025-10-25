@@ -52,6 +52,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_payments -> {
                     startActivity(Intent(this, PaymentHistoryActivity::class.java))
                 }
+                R.id.nav_printer_settings -> {
+                    // FIXED: Now properly launches Printer Settings
+                    startActivity(Intent(this, PrinterSettingsActivity::class.java))
+                }
                 R.id.nav_export -> {
                     startActivity(Intent(this, ExportActivity::class.java))
                 }
