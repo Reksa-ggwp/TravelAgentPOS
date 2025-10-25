@@ -42,8 +42,9 @@ class ReprintTicketsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ReprintTicketsAdapter { ticket ->
-            openTicketPrint(ticket.id)
+        adapter = ReprintTicketsAdapter { reprintTicketItem -> // Renamed for clarity
+            // Access the 'id' through the nested 'ticket' property
+            openTicketPrint(reprintTicketItem.ticket.id)
         }
 
         binding.rvTickets.apply {
