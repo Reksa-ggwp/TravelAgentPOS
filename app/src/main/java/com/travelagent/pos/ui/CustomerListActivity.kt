@@ -6,18 +6,17 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ActivityCustomerListBinding
 import com.travelagent.pos.repository.CustomerRepository
-import com.travelagent.pos.utils.LoadingDialog
 import com.travelagent.pos.viewmodel.CustomerViewModel
 import com.travelagent.pos.viewmodel.CustomerViewModelFactory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class CustomerListActivity : AppCompatActivity() {
@@ -32,7 +31,6 @@ class CustomerListActivity : AppCompatActivity() {
         )
     }
 
-    private lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCustomerListBinding.inflate(layoutInflater)
@@ -45,8 +43,8 @@ class CustomerListActivity : AppCompatActivity() {
         setupSwipeRefresh()
         observeViewModel()
 
+        // Initial load
         viewModel.loadCustomers()
-        loadingDialog = LoadingDialog(this)
     }
 
     private fun setupToolbar() {
@@ -72,7 +70,7 @@ class CustomerListActivity : AppCompatActivity() {
                 ).show()
 
                 // Reload the customer list
-                viewModel.loadCustomers()
+                viewModel.loadCustomers(forceRefresh = true)
             }
         )
 
@@ -100,24 +98,24 @@ class CustomerListActivity : AppCompatActivity() {
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefresh.setColorSchemeResources(
-            R.color.info,
-            R.color.success,
-            R.color.warning
-        )
+        binding.swipeRefresh.apply {
+            setColorSchemeResources(
+                R.color.info,
+                R.color.success,
+                R.color.warning
+            )
 
-        binding.swipeRefresh.setOnRefreshListener {
-            // Clear search when refreshing
-            binding.etSearch.text?.clear()
-            viewModel.loadCustomers()
+            setOnRefreshListener {
+                // Clear search when refreshing
+                binding.etSearch.text?.clear()
+                viewModel.loadCustomers(forceRefresh = true)
+            }
         }
     }
 
     private fun observeViewModel() {
+        // Observe customer data
         viewModel.customers.observe(this) { customers ->
-            // Stop refresh animation
-            binding.swipeRefresh.isRefreshing = false
-
             if (customers.isEmpty() && binding.etSearch.text.isNullOrEmpty()) {
                 showEmptyState()
             } else {
@@ -126,16 +124,13 @@ class CustomerListActivity : AppCompatActivity() {
             }
         }
 
+        // Observe loading state - THIS IS THE FIX
         viewModel.loading.observe(this) { isLoading ->
-            if (isLoading) {
-                loadingDialog.show("Memuat data...")
-            } else {
-                loadingDialog.dismiss()
-            }
+            binding.swipeRefresh.isRefreshing = isLoading
         }
 
+        // Observe errors
         viewModel.error.observe(this) { errorMessage ->
-            binding.swipeRefresh.isRefreshing = false
             errorMessage?.let {
                 showErrorSnackbar(it)
                 viewModel.clearError()
@@ -165,6 +160,6 @@ class CustomerListActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadCustomers()
+        viewModel.loadCustomers(forceRefresh = true)
     }
 }

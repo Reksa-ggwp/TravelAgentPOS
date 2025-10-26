@@ -24,6 +24,9 @@ class TripViewModel(private val repository: TripRepository) : ViewModel() {
     private val _tripDetails = MutableLiveData<TripDetails?>()
     val tripDetails: LiveData<TripDetails?> = _tripDetails
 
+    private val _operationSuccess = MutableLiveData<Boolean>()
+    val operationSuccess: LiveData<Boolean> = _operationSuccess
+
     fun loadTrips(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _loading.value = true
@@ -43,6 +46,8 @@ class TripViewModel(private val repository: TripRepository) : ViewModel() {
     fun loadTripDetails(tripId: Int) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
+
             try {
                 val details = repository.getTripWithDetails(tripId)
                 _tripDetails.value = details
@@ -54,16 +59,19 @@ class TripViewModel(private val repository: TripRepository) : ViewModel() {
         }
     }
 
-    fun deleteTrip(trip: Trip, onSuccess: () -> Unit) {
+    fun deleteTrip(trip: Trip) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
+
             when (val result = repository.deleteTrip(trip)) {
                 is RepositoryResult.Success -> {
+                    _operationSuccess.value = true
                     loadTrips(forceRefresh = true)
-                    onSuccess()
                 }
                 is RepositoryResult.Failure -> {
                     _error.value = result.exception.message
+                    _operationSuccess.value = false
                 }
             }
             _loading.value = false
@@ -72,5 +80,15 @@ class TripViewModel(private val repository: TripRepository) : ViewModel() {
 
     fun clearError() {
         _error.value = null
+    }
+
+    fun clearOperationSuccess() {
+        _operationSuccess.value = false
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up resources if needed
+        repository.invalidateCache()
     }
 }

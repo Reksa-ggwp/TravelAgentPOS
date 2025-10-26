@@ -10,6 +10,7 @@ import com.travelagent.pos.data.Customer
 import com.travelagent.pos.databinding.ActivityAddCustomerBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.repository.RepositoryResult
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.utils.InputValidator
 import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
@@ -126,13 +127,13 @@ class AddCustomerActivity : AppCompatActivity() {
 
                 when (result) {
                     is RepositoryResult.Success -> {
-                        Toast.makeText(this@AddCustomerActivity, "✅ Berhasil disimpan", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.showSuccess(this@AddCustomerActivity, "Berhasil disimpan")
                         finish()
                     }
                     is RepositoryResult.Failure -> {
                         binding.btnSave.isEnabled = true
                         binding.btnSave.text = "Simpan"
-                        showErrorSnackbar(result.exception.message ?: "Terjadi kesalahan")
+                        ErrorHandler.showError(this@AddCustomerActivity, "Terjadi Kesalahan")
                     }
                 }
             } catch (e: Exception) {
