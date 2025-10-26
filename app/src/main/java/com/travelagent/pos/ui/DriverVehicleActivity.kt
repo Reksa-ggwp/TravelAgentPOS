@@ -1,16 +1,21 @@
 package com.travelagent.pos.ui
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.widget.Toast
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.R
 import com.travelagent.pos.data.Driver
 import com.travelagent.pos.data.Vehicle
 import com.travelagent.pos.databinding.ActivityDriverVehicleBinding
 import androidx.lifecycle.lifecycleScope
+import com.travelagent.pos.utils.InputValidator
+import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
 
 class DriverVehicleActivity : AppCompatActivity() {
@@ -138,19 +143,51 @@ class DriverVehicleActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_vehicle, null)
         val etPlate = dialogView.findViewById<android.widget.EditText>(R.id.etVehiclePlate)
 
+        // Add auto-formatting
+        etPlate.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting) return
+
+                isFormatting = true
+                val original = s.toString()
+                val formatted = InputValidator.formatPlateNumber(original)
+
+                if (formatted != original) {
+                    etPlate.setText(formatted)
+                    etPlate.setSelection(formatted.length)
+                }
+                isFormatting = false
+            }
+        })
+
         AlertDialog.Builder(this)
             .setTitle("Tambah Kendaraan")
             .setView(dialogView)
             .setPositiveButton("Simpan") { _, _ ->
                 val plate = etPlate.text.toString().trim()
-                if (plate.isNotEmpty()) {
-                    lifecycleScope.launch {
-                        db.vehicleDao().insert(Vehicle(nomorPolisi = plate))
-                        Toast.makeText(this@DriverVehicleActivity, "Kendaraan ditambahkan", Toast.LENGTH_SHORT).show()
-                        loadData()
+
+                // Validate before saving
+                when (val result = InputValidator.validatePlateNumber(plate)) {
+                    is ValidationResult.Error -> {
+                        MaterialAlertDialogBuilder(this)
+                            .setTitle("⚠️ Nomor Polisi Tidak Valid")
+                            .setMessage("${result.message}\n\nContoh: B 1234 ABC (semua huruf KAPITAL)")
+                            .setPositiveButton("OK", null)
+                            .show()
                     }
-                } else {
-                    Toast.makeText(this, "Isi nomor polisi", Toast.LENGTH_SHORT).show()
+                    ValidationResult.Success -> {
+                        lifecycleScope.launch {
+                            val formatted = InputValidator.formatPlateNumber(plate)
+                            db.vehicleDao().insert(Vehicle(nomorPolisi = formatted))
+                            Toast.makeText(this@DriverVehicleActivity, "✅ Kendaraan ditambahkan", Toast.LENGTH_SHORT).show()
+                            loadData()
+                        }
+                    }
                 }
             }
             .setNegativeButton("Batal", null)

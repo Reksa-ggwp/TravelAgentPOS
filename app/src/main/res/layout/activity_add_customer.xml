@@ -80,13 +80,15 @@
                         android:hint="Nomor Telepon"
                         app:startIconDrawable="@drawable/ic_phone"
                         app:startIconTint="@color/primary"
-                        app:helperText="Format: 081234567890">
+                        app:helperText="Format: 08xxxxxxxxx (10-13 digit)"
+                        app:helperTextEnabled="true">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPhone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="phone"/>
+                            android:inputType="phone"
+                            android:maxLength="13"/>
 
                     </com.google.android.material.textfield.TextInputLayout>
 

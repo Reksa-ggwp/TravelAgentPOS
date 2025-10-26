@@ -3,13 +3,18 @@ package com.travelagent.pos.ui
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Trip
 import com.travelagent.pos.databinding.ItemTripCardBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -48,8 +53,8 @@ class TripAdapter(
                     // Change color based on availability
                     val color = when {
                         available == 0 -> android.R.color.darker_gray
-                        available <= 3 -> com.travelagent.pos.R.color.warning
-                        else -> com.travelagent.pos.R.color.status_available
+                        available <= 3 -> R.color.warning
+                        else -> R.color.status_available
                     }
                     chipAvailable.setChipBackgroundColorResource(color)
                 }
@@ -77,27 +82,80 @@ class TripAdapter(
             }
         }
 
+        // ============================================================
+        // CRITICAL UPDATE #3: TripAdapter.kt
+        // Add confirmation dialog before delete
+        // ============================================================
         private fun showDeleteDialog(trip: Trip) {
-            AlertDialog.Builder(itemView.context)
-                .setTitle("Hapus Perjalanan?")
-                .setMessage("Yakin ingin menghapus perjalanan ${trip.asal} → ${trip.tujuan}?\n\nSemua data kursi dan booking akan ikut terhapus.")
-                .setPositiveButton("Hapus") { _, _ ->
-                    scope.launch {
-                        db.tripDao().delete(trip)
-                        val position = trips.indexOf(trip)
-                        trips.remove(trip)
-                        notifyItemRemoved(position)
+            scope.launch {
+                // Check for paid tickets first
+                // NOTE: Assuming db.ticketDao() exists and has getTicketsByTrip method
+                val tickets = db.ticketDao().getTicketsByTrip(trip.id)
+                val hasPaidTickets = tickets.any { it.status == "paid" }
+                val bookedCount = tickets.count { it.status in listOf("booked", "partial", "paid") }
 
-                        android.widget.Toast.makeText(
-                            itemView.context,
-                            "✓ Perjalanan dihapus",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                withContext(Dispatchers.Main) {
+                    if (hasPaidTickets) {
+                        MaterialAlertDialogBuilder(itemView.context)
+                            .setTitle("⛔ Tidak Dapat Dihapus")
+                            .setMessage(
+                                "Perjalanan ini memiliki tiket yang sudah dibayar.\n\n" +
+                                        "Untuk menjaga integritas data pembayaran, perjalanan dengan tiket yang sudah dibayar tidak dapat dihapus."
+                            )
+                            .setPositiveButton("Mengerti", null)
+                            .setIcon(R.drawable.ic_warning)
+                            .show()
+                        return@withContext
                     }
+
+                    val message = if (bookedCount > 0) {
+                        "Yakin ingin menghapus perjalanan ${trip.asal} → ${trip.tujuan}?\n\n" +
+                                "⚠️ PERHATIAN:\n" +
+                                "• Ada $bookedCount kursi yang sudah di-booking\n" +
+                                "• Semua data kursi akan dihapus\n" +
+                                "• Semua booking akan hilang\n" +
+                                "• Data tidak dapat dikembalikan"
+                    } else {
+                        "Yakin ingin menghapus perjalanan ${trip.asal} → ${trip.tujuan}?\n\n" +
+                                "Data tidak dapat dikembalikan."
+                    }
+
+                    MaterialAlertDialogBuilder(itemView.context)
+                        .setTitle("❌ Hapus Perjalanan?")
+                        .setMessage(message)
+                        .setPositiveButton("Hapus") { _, _ ->
+                            scope.launch {
+                                try {
+                                    db.tripDao().delete(trip)
+                                    withContext(Dispatchers.Main) {
+                                        val position = trips.indexOf(trip)
+                                        // Check if position is valid before removing
+                                        if (position != -1) {
+                                            trips.removeAt(position)
+                                            notifyItemRemoved(position)
+                                        }
+                                        Toast.makeText(
+                                            itemView.context,
+                                            "✅ Perjalanan dihapus",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(
+                                            itemView.context,
+                                            "❌ Gagal menghapus: ${e.message}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                }
+                            }
+                        }
+                        .setNegativeButton("Batal", null)
+                        .setIcon(R.drawable.ic_warning)
+                        .show()
                 }
-                .setNegativeButton("Batal", null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show()
+            }
         }
     }
 

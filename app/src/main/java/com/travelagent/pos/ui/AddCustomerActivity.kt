@@ -1,6 +1,7 @@
 package com.travelagent.pos.ui
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
@@ -9,6 +10,8 @@ import com.travelagent.pos.data.Customer
 import com.travelagent.pos.databinding.ActivityAddCustomerBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.repository.RepositoryResult
+import com.travelagent.pos.utils.InputValidator
+import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
 
 
@@ -56,28 +59,31 @@ class AddCustomerActivity : AppCompatActivity() {
 
         var isValid = true
 
-        if (name.isEmpty()) {
-            binding.etName.error = "Nama tidak boleh kosong"
-            isValid = false
-        } else if (name.length < 3) {
-            binding.etName.error = "Nama terlalu pendek (minimal 3 karakter)"
-            isValid = false
+        // Validate name
+        when (val nameResult = InputValidator.validateName(name, "Nama")) {
+            is ValidationResult.Error -> {
+                binding.etName.error = nameResult.message
+                isValid = false
+            }
+            ValidationResult.Success -> binding.etName.error = null
         }
 
-        if (phone.isEmpty()) {
-            binding.etPhone.error = "Nomor telepon tidak boleh kosong"
-            isValid = false
-        } else if (!phone.matches(Regex("^[0-9]{10,13}$"))) {
-            binding.etPhone.error = "Format nomor telepon salah (10-13 digit)"
-            isValid = false
+        // Validate phone
+        when (val phoneResult = InputValidator.validatePhoneNumber(phone)) {
+            is ValidationResult.Error -> {
+                binding.etPhone.error = phoneResult.message
+                isValid = false
+            }
+            ValidationResult.Success -> binding.etPhone.error = null
         }
 
-        if (address.isEmpty()) {
-            binding.etAddress.error = "Alamat tidak boleh kosong"
-            isValid = false
-        } else if (address.length < 5) {
-            binding.etAddress.error = "Alamat terlalu pendek (minimal 5 karakter)"
-            isValid = false
+        // Validate address
+        when (val addressResult = InputValidator.validateAddress(address)) {
+            is ValidationResult.Error -> {
+                binding.etAddress.error = addressResult.message
+                isValid = false
+            }
+            ValidationResult.Success -> binding.etAddress.error = null
         }
 
         return isValid
@@ -100,8 +106,8 @@ class AddCustomerActivity : AppCompatActivity() {
         val phone = binding.etPhone.text.toString().trim()
         val address = binding.etAddress.text.toString().trim()
 
-        // Disable button to prevent double submission
         binding.btnSave.isEnabled = false
+        binding.btnSave.text = "Menyimpan..."
 
         lifecycleScope.launch {
             try {
@@ -120,27 +126,18 @@ class AddCustomerActivity : AppCompatActivity() {
 
                 when (result) {
                     is RepositoryResult.Success -> {
-                        val message = if (customerId != null) {
-                            "✅ Pelanggan berhasil diperbarui"
-                        } else {
-                            "✅ Pelanggan berhasil ditambahkan"
-                        }
-
-                        Snackbar.make(
-                            binding.root,
-                            message,
-                            Snackbar.LENGTH_SHORT
-                        ).show()
-
+                        Toast.makeText(this@AddCustomerActivity, "✅ Berhasil disimpan", Toast.LENGTH_SHORT).show()
                         finish()
                     }
                     is RepositoryResult.Failure -> {
                         binding.btnSave.isEnabled = true
+                        binding.btnSave.text = "Simpan"
                         showErrorSnackbar(result.exception.message ?: "Terjadi kesalahan")
                     }
                 }
             } catch (e: Exception) {
                 binding.btnSave.isEnabled = true
+                binding.btnSave.text = "Simpan"
                 showErrorSnackbar(e.message ?: "Terjadi kesalahan")
             }
         }

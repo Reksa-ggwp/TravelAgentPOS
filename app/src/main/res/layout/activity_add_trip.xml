@@ -216,13 +216,15 @@
                         style="@style/Widget.App.TextInputLayout"
                         android:hint="Harga per Kursi"
                         app:prefixText="Rp "
-                        app:helperText="Contoh: 150000">
+                        app:helperText="Min: Rp 10.000 | Max: Rp 10.000.000"
+                        app:helperTextEnabled="true">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPrice"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="number"/>
+                            android:inputType="number"
+                            android:maxLength="8"/>
 
                     </com.google.android.material.textfield.TextInputLayout>
 

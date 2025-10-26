@@ -10,6 +10,9 @@ interface TicketDao {
     @Update
     suspend fun update(ticket: Ticket)
 
+    @Delete
+    suspend fun delete(ticket: Ticket)
+
     @Query("SELECT * FROM tickets ORDER BY createdDate DESC")
     suspend fun getAllTickets(): List<Ticket>
 
@@ -21,4 +24,7 @@ interface TicketDao {
 
     @Query("SELECT * FROM tickets WHERE id = :id")
     suspend fun getTicketById(id: Int): Ticket?
+
+    @Query("SELECT * FROM tickets WHERE customerId = :customerId")
+    suspend fun getTicketsByCustomer(customerId: Int): List<Ticket>
 }

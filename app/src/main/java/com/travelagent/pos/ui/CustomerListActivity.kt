@@ -2,15 +2,18 @@ package com.travelagent.pos.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ActivityCustomerListBinding
 import com.travelagent.pos.repository.CustomerRepository
+import com.travelagent.pos.utils.LoadingDialog
 import com.travelagent.pos.viewmodel.CustomerViewModel
 import com.travelagent.pos.viewmodel.CustomerViewModelFactory
 import kotlinx.coroutines.Job
@@ -29,6 +32,7 @@ class CustomerListActivity : AppCompatActivity() {
         )
     }
 
+    private lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCustomerListBinding.inflate(layoutInflater)
@@ -38,9 +42,11 @@ class CustomerListActivity : AppCompatActivity() {
         setupRecyclerView()
         setupSearchBox()
         setupFab()
+        setupSwipeRefresh()
         observeViewModel()
 
         viewModel.loadCustomers()
+        loadingDialog = LoadingDialog(this)
     }
 
     private fun setupToolbar() {
@@ -50,11 +56,25 @@ class CustomerListActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = CustomerAdapter(mutableListOf()) { customer ->
-            val intent = Intent(this, AddCustomerActivity::class.java)
-            intent.putExtra("customerId", customer.id)
-            startActivity(intent)
-        }
+        adapter = CustomerAdapter(
+            customers = mutableListOf(),
+            onItemClick = { customer ->
+                val intent = Intent(this, AddCustomerActivity::class.java)
+                intent.putExtra("customerId", customer.id)
+                startActivity(intent)
+            },
+            onDeleteSuccess = {
+                // Show success message
+                Snackbar.make(
+                    binding.root,
+                    "Pelanggan berhasil dihapus",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+
+                // Reload the customer list
+                viewModel.loadCustomers()
+            }
+        )
 
         binding.rvCustomers.apply {
             layoutManager = LinearLayoutManager(this@CustomerListActivity)
@@ -79,8 +99,25 @@ class CustomerListActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeResources(
+            R.color.info,
+            R.color.success,
+            R.color.warning
+        )
+
+        binding.swipeRefresh.setOnRefreshListener {
+            // Clear search when refreshing
+            binding.etSearch.text?.clear()
+            viewModel.loadCustomers()
+        }
+    }
+
     private fun observeViewModel() {
         viewModel.customers.observe(this) { customers ->
+            // Stop refresh animation
+            binding.swipeRefresh.isRefreshing = false
+
             if (customers.isEmpty() && binding.etSearch.text.isNullOrEmpty()) {
                 showEmptyState()
             } else {
@@ -89,12 +126,16 @@ class CustomerListActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.loading.observe(this) { _ ->
-            // You can show/hide a progress bar here
-            // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        viewModel.loading.observe(this) { isLoading ->
+            if (isLoading) {
+                loadingDialog.show("Memuat data...")
+            } else {
+                loadingDialog.dismiss()
+            }
         }
 
         viewModel.error.observe(this) { errorMessage ->
+            binding.swipeRefresh.isRefreshing = false
             errorMessage?.let {
                 showErrorSnackbar(it)
                 viewModel.clearError()
@@ -103,16 +144,13 @@ class CustomerListActivity : AppCompatActivity() {
     }
 
     private fun showEmptyState() {
-        // You can add an empty state view to your layout
-        Snackbar.make(
-            binding.root,
-            "Belum ada data pelanggan",
-            Snackbar.LENGTH_SHORT
-        ).show()
+        binding.rvCustomers.visibility = View.GONE
+        binding.emptyState.visibility = View.VISIBLE
     }
 
     private fun hideEmptyState() {
-        // Hide empty state view if you have one
+        binding.rvCustomers.visibility = View.VISIBLE
+        binding.emptyState.visibility = View.GONE
     }
 
     private fun showErrorSnackbar(message: String) {

@@ -2,6 +2,8 @@ package com.travelagent.pos.ui
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +16,8 @@ import com.travelagent.pos.data.Trip
 import com.travelagent.pos.data.Vehicle
 import com.travelagent.pos.databinding.ActivityAddTripBinding
 import com.travelagent.pos.utils.Constants
+import com.travelagent.pos.utils.InputValidator
+import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,6 +50,7 @@ class AddTripActivity : AppCompatActivity() {
         setupCityInputs()
         setupDatePicker()
         setupDriverAndVehicleInputs()
+        setupVehicleAutoFormat()
         setupSaveButton()
 
         if (isEditMode) {
@@ -122,6 +127,25 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupVehicleAutoFormat() {
+        binding.actvVehicle.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting) return
+                isFormatting = true
+                val original = s.toString()
+                val formatted = InputValidator.formatPlateNumber(original)
+                if (formatted != original) {
+                    binding.actvVehicle.setText(formatted)
+                    binding.actvVehicle.setSelection(formatted.length)
+                }
+                isFormatting = false
+            }
+        })
+    }
+
     private fun setupDriverDropdown(drivers: List<Driver>) {
         // FIXED: Driver names as dropdown
         val driverNames = drivers.map { it.namaSopir }
@@ -183,8 +207,8 @@ class AddTripActivity : AppCompatActivity() {
     private fun validateInput(): Boolean {
         val origin = binding.actvOrigin.text.toString().trim()
         val destination = binding.actvDestination.text.toString().trim()
-        val price = binding.etPrice.text.toString().toDoubleOrNull()
-
+        val price = binding.etPrice.text.toString()
+        val vehicle = binding.actvVehicle.text.toString().trim()
         when {
             origin.isEmpty() -> {
                 binding.actvOrigin.error = "Pilih kota asal"
@@ -206,18 +230,36 @@ class AddTripActivity : AppCompatActivity() {
                 Toast.makeText(this, "Pilih sopir", Toast.LENGTH_SHORT).show()
                 return false
             }
-            selectedVehicle == null -> {
+            vehicle.isEmpty() -> {
                 Toast.makeText(this, "Pilih kendaraan", Toast.LENGTH_SHORT).show()
                 return false
             }
-            price == null || price <= 0 -> {
-                binding.etPrice.error = "Masukkan harga yang valid"
+        }
+        // Validate plate number format
+        when (val plateResult = InputValidator.validatePlateNumber(vehicle)) {
+            is ValidationResult.Error -> {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("⚠️ Format Nomor Polisi Salah")
+                    .setMessage("${plateResult.message}\n\nContoh format yang benar:\n• B 1234 ABC\n• L 5678 CD\n\nSemua huruf harus KAPITAL.")
+                    .setPositiveButton("OK", null)
+                    .show()
                 return false
             }
+            ValidationResult.Success -> { /* OK */
+            }
         }
-
+        // Validate price
+        when (val priceResult = InputValidator.validatePrice(price)) {
+            is ValidationResult.Error -> {
+                binding.etPrice.error = priceResult.message
+                binding.etPrice.requestFocus()
+                return false
+            }
+            ValidationResult.Success -> binding.etPrice.error = null
+        }
         return true
     }
+
 
     private fun createTrip() {
         val origin = binding.actvOrigin.text.toString().trim()

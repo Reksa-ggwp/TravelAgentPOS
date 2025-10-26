@@ -9,4 +9,10 @@
     <string name="label_sisa">Sisa</string>
     <string name="_1">1</string>
     <string name="placeholder_nopol">B 1234 ABC</string>
+    <string name="empty_state_desc">Tidak ada pelanggan</string>
+    <string name="empty_state_title">Belum Ada Pelanggan</string>
+    <string name="empty_state_message">Tambahkan pelanggan pertama Anda\ndengan menekan tombol + di bawah</string>
+
+    <!-- Content Descriptions -->
+    <string name="add_customer_desc">Tambah Pelanggan</string>
 </resources>
