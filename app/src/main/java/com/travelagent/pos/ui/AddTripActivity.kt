@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Driver
 import com.travelagent.pos.data.Seat
@@ -223,26 +224,25 @@ class AddTripActivity : AppCompatActivity() {
                 return false
             }
             selectedDate == 0L -> {
-                Toast.makeText(this, "Pilih tanggal keberangkatan", Toast.LENGTH_SHORT).show()
+                ErrorHandler.handleValidationError(this, "Pilih tanggal keberangkatan")
                 return false
             }
             selectedDriver == null -> {
-                Toast.makeText(this, "Pilih sopir", Toast.LENGTH_SHORT).show()
+                ErrorHandler.handleValidationError(this, "Pilih sopir")
                 return false
             }
             vehicle.isEmpty() -> {
-                Toast.makeText(this, "Pilih kendaraan", Toast.LENGTH_SHORT).show()
+                ErrorHandler.handleValidationError(this, "Pilih kendaraan")
                 return false
             }
         }
         // Validate plate number format
         when (val plateResult = InputValidator.validatePlateNumber(vehicle)) {
             is ValidationResult.Error -> {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle("⚠️ Format Nomor Polisi Salah")
-                    .setMessage("${plateResult.message}\n\nContoh format yang benar:\n• B 1234 ABC\n• L 5678 CD\n\nSemua huruf harus KAPITAL.")
-                    .setPositiveButton("OK", null)
-                    .show()
+                ErrorHandler.handleValidationError(
+                    this,
+                    "${plateResult.message}\n\nContoh format yang benar:\n• B 1234 ABC\n• L 5678 CD\n\nSemua huruf harus KAPITAL."
+                )
                 return false
             }
             ValidationResult.Success -> { /* OK */
@@ -295,15 +295,11 @@ class AddTripActivity : AppCompatActivity() {
                     )
                 }
 
-                showSuccessMessage("Perjalanan berhasil ditambahkan")
+                ErrorHandler.showSuccess(this@AddTripActivity, "Perjalanan berhasil ditambahkan")
                 finish()
 
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@AddTripActivity,
-                    "❌ Gagal: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                ErrorHandler.handleOperationError(this@AddTripActivity, "menambah perjalanan", e)
             }
         }
     }
@@ -332,15 +328,11 @@ class AddTripActivity : AppCompatActivity() {
 
                 db.tripDao().update(trip)
 
-                showSuccessMessage("Perjalanan berhasil diupdate")
+                ErrorHandler.showSuccess(this@AddTripActivity, "Perjalanan berhasil diupdate")
                 finish()
 
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@AddTripActivity,
-                    "❌ Gagal: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                ErrorHandler.handleOperationError(this@AddTripActivity, "mengupdate perjalanan", e)
             }
         }
     }
@@ -381,19 +373,10 @@ class AddTripActivity : AppCompatActivity() {
         }
     }
 
-    private fun showSuccessMessage(message: String) {
-        Toast.makeText(
-            this,
-            "✅ $message",
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
     private fun showInfoDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle("⚠️ Perhatian")
-            .setMessage("Pastikan Anda sudah menambahkan data Sopir dan Kendaraan terlebih dahulu di menu 'Data Sopir & Kendaraan'.")
-            .setPositiveButton("OK", null)
-            .show()
+        ErrorHandler.showInfo(
+            this,
+            "Pastikan Anda sudah menambahkan data Sopir dan Kendaraan terlebih dahulu di menu 'Data Sopir & Kendaraan'."
+        )
     }
 }

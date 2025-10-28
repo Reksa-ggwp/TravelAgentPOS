@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import android.widget.*
+import androidx.core.content.ContextCompat
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Seat
@@ -38,7 +40,7 @@ class TripDetailsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val loadedTrip = db.tripDao().getTripById(tripId)
             if (loadedTrip == null) {
-                Toast.makeText(this@TripDetailsActivity, "Perjalanan tidak ditemukan", Toast.LENGTH_SHORT).show()
+                ErrorHandler.showError(this@TripDetailsActivity, "Perjalanan tidak ditemukan")
                 finish()
                 return@launch
             }
@@ -103,16 +105,16 @@ class TripDetailsActivity : AppCompatActivity() {
 
             when (seat.status) {
                 "available" -> {
-                    setBackgroundColor(android.graphics.Color.GREEN)
-                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.status_available))
+                    setTextColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.white))
                 }
                 "booked" -> {
-                    setBackgroundColor(android.graphics.Color.parseColor("#FFA500"))
-                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.status_booked))
+                    setTextColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.white))
                 }
                 "paid" -> {
-                    setBackgroundColor(android.graphics.Color.RED)
-                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.status_paid))
+                    setTextColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.white))
                 }
             }
 
@@ -131,8 +133,8 @@ class TripDetailsActivity : AppCompatActivity() {
             }
             gravity = android.view.Gravity.CENTER
             textSize = 18f
-            setBackgroundColor(android.graphics.Color.LTGRAY)
-            setTextColor(android.graphics.Color.BLACK)
+            setBackgroundColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.light_gray))
+            setTextColor(ContextCompat.getColor(this@TripDetailsActivity, R.color.black))
         }
         row.addView(placeholder)
     }
@@ -166,7 +168,7 @@ class TripDetailsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val customers = db.customerDao().getAllCustomers()
             if (customers.isEmpty()) {
-                Toast.makeText(this@TripDetailsActivity, "Belum ada pelanggan", Toast.LENGTH_SHORT).show()
+                ErrorHandler.showWarning(this@TripDetailsActivity, "Belum ada pelanggan")
                 return@launch
             }
 
@@ -180,11 +182,7 @@ class TripDetailsActivity : AppCompatActivity() {
                             customerId = selectedCustomer.id,
                             status = "booked"
                         ))
-                        Toast.makeText(
-                            this@TripDetailsActivity,
-                            "Kursi ${seat.nomorKursi}: ${selectedCustomer.namaLengkap}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ErrorHandler.showSuccess(this@TripDetailsActivity, "Kursi ${seat.nomorKursi}: ${selectedCustomer.namaLengkap}")
                         loadTripDetails()
                     }
                 }
@@ -211,7 +209,7 @@ class TripDetailsActivity : AppCompatActivity() {
     private fun clearSeat(seat: Seat) {
         lifecycleScope.launch {
             db.seatDao().update(seat.copy(customerId = null, status = "available"))
-            Toast.makeText(this@TripDetailsActivity, "Kursi ${seat.nomorKursi} dikosongkan", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showSuccess(this@TripDetailsActivity, "Kursi ${seat.nomorKursi} dikosongkan")
             loadTripDetails()
         }
     }
@@ -223,7 +221,7 @@ class TripDetailsActivity : AppCompatActivity() {
             }.sortedBy { it.nomorKursi }
 
             if (bookedSeats.isEmpty()) {
-                Toast.makeText(this@TripDetailsActivity, "Tidak ada penumpang", Toast.LENGTH_SHORT).show()
+                ErrorHandler.showWarning(this@TripDetailsActivity, "Tidak ada penumpang")
                 return@launch
             }
 

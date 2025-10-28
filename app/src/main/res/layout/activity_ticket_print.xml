@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/background_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#FF5722"
+    android:padding="16dp"
+    android:background="@color/brand_orange"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -20,7 +20,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="0dp"
@@ -29,7 +29,7 @@
             android:text="Cetak Tiket"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:gravity="center" />
 
         <ImageButton
@@ -38,7 +38,7 @@
             android:layout_height="48dp"
             android:src="@drawable/ic_info"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF"
+            app:tint="@color/white"
             android:contentDescription="Printer Settings" />
 
     </LinearLayout>
@@ -75,9 +75,9 @@
                     android:text="Ticket Preview"
                     android:textSize="14sp"
                     android:padding="16dp"
-                    android:textColor="#000000"
+                    android:textColor="@color/text_primary"
                     android:fontFamily="monospace"
-                    android:background="#FFFFFF" />
+                    android:background="@color/white" />
 
             </androidx.cardview.widget.CardView>
 
@@ -87,7 +87,7 @@
                 android:layout_height="60dp"
                 android:text="🖨️ Print Tiket (Thermal)"
                 android:textSize="16sp"
-                android:backgroundTint="#2196F3"
+                android:backgroundTint="@color/info"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -96,7 +96,7 @@
                 android:layout_height="60dp"
                 android:text="📤 Export Tiket"
                 android:textSize="16sp"
-                android:backgroundTint="#00BCD4"
+                android:backgroundTint="@color/cyan"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -105,7 +105,7 @@
                 android:layout_height="60dp"
                 android:text="📌 Stamp Tiket"
                 android:textSize="16sp"
-                android:backgroundTint="#9C27B0"
+                android:backgroundTint="@color/brand_purple"
                 android:layout_marginBottom="12dp" />
 
         </LinearLayout>
@@ -117,9 +117,9 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_margin="16dp"
-        android:text="✅ TANDAI SEBAGAI PAID"
+    android:text="✅ TANDAI SEBAGAI PAID"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:backgroundTint="#4CAF50" />
+    android:backgroundTint="@color/success" />
 
 </LinearLayout>

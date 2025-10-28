@@ -9,6 +9,7 @@ import androidx.core.content.FileProvider
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ActivityExportBinding
 import com.travelagent.pos.utils.ExportManager
+import com.travelagent.pos.utils.ErrorHandler
 import kotlinx.coroutines.launch
 
 class ExportActivity : AppCompatActivity() {
@@ -35,11 +36,7 @@ class ExportActivity : AppCompatActivity() {
                 val result = exportManager.exportAllData()
                 result.fold(
                     onSuccess = { file ->
-                        Toast.makeText(
-                            this@ExportActivity,
-                            "✓ Export berhasil!\n${file.name}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showSuccess(this@ExportActivity, "Export berhasil!\n${file.name}")
 
                         // Share file
                         val uri = FileProvider.getUriForFile(
@@ -57,15 +54,11 @@ class ExportActivity : AppCompatActivity() {
                         startActivity(Intent.createChooser(shareIntent, "Bagikan Export"))
                     },
                     onFailure = { e ->
-                        Toast.makeText(
-                            this@ExportActivity,
-                            "❌ Export gagal: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.handleOperationError(this@ExportActivity, "export", e)
                     }
                 )
             } catch (e: Exception) {
-                Toast.makeText(this@ExportActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.handleOperationError(this@ExportActivity, "export", e)
             }
         }
     }

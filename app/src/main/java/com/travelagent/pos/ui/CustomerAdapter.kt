@@ -7,6 +7,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.travelagent.pos.data.Customer
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ItemCustomerBinding
+import com.travelagent.pos.utils.ErrorHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,14 +60,10 @@ class CustomerAdapter(
                 withContext(Dispatchers.Main) {
                     // Cannot delete if customer has paid tickets
                     if (paidCount > 0) {
-                        MaterialAlertDialogBuilder(context)
-                            .setTitle("⛔ Tidak Dapat Dihapus")
-                            .setMessage(
-                                "Pelanggan ${customer.namaLengkap} memiliki $paidCount tiket yang sudah dibayar.\n\n" +
-                                        "Untuk menjaga integritas data, pelanggan dengan riwayat pembayaran tidak dapat dihapus."
-                            )
-                            .setPositiveButton("Mengerti", null)
-                            .show()
+                        ErrorHandler.handleValidationError(
+                            context,
+                            "Pelanggan ${customer.namaLengkap} memiliki $paidCount tiket yang sudah dibayar.\n\nUntuk menjaga integritas data, pelanggan dengan riwayat pembayaran tidak dapat dihapus."
+                        )
                         return@withContext
                     }
 
@@ -82,14 +79,13 @@ class CustomerAdapter(
                                 "Data tidak dapat dikembalikan."
                     }
 
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("❌ Hapus Pelanggan?")
-                        .setMessage(message)
-                        .setPositiveButton("Hapus") { _, _ ->
-                            performDelete(customer, tickets, db)
-                        }
-                        .setNegativeButton("Batal", null)
-                        .show()
+                    ErrorHandler.showConfirmationDialog(
+                        context,
+                        "Hapus Pelanggan?",
+                        message
+                    ) {
+                        performDelete(customer, tickets, db)
+                    }
                 }
             }
         }
@@ -116,17 +112,13 @@ class CustomerAdapter(
                             customers.removeAt(position)
                             notifyItemRemoved(position)
                         }
-
+                        ErrorHandler.showSuccess(itemView.context, "Pelanggan dihapus")
                         // Callback to refresh if needed
                         onDeleteSuccess()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        MaterialAlertDialogBuilder(itemView.context)
-                            .setTitle("Error")
-                            .setMessage("Gagal menghapus pelanggan: ${e.message}")
-                            .setPositiveButton("OK", null)
-                            .show()
+                        ErrorHandler.handleOperationError(itemView.context, "menghapus pelanggan", e)
                     }
                 }
             }
@@ -149,8 +141,13 @@ class CustomerAdapter(
     override fun getItemCount() = customers.size
 
     fun updateList(newList: MutableList<Customer>) {
-        customers = newList
-        notifyDataSetChanged()
+        // Use DiffUtil to compute minimal updates for smoother UI
+        val diffCallback = CustomerDiffCallback(customers.toList(), newList)
+        val diffResult = androidx.recyclerview.widget.DiffUtil.calculateDiff(diffCallback)
+
+        customers.clear()
+        customers.addAll(newList)
+        diffResult.dispatchUpdatesTo(this)
     }
 
     // Optional: Add DiffUtil for better performance

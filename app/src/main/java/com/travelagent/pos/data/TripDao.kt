@@ -21,4 +21,10 @@ interface TripDao {
 
     @Query("SELECT * FROM trips WHERE tanggal >= :startDate AND tanggal < :endDate")
     suspend fun getTripsBetween(startDate: Long, endDate: Long): List<Trip>
+
+    // Transactional helper to delete by id, relying on FK cascade for seats/tickets/payments
+    @Transaction
+    suspend fun deleteByIdTransactional(db: AppDatabase, tripId: Int) {
+        getTripById(tripId)?.let { delete(it) }
+    }
 }

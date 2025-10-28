@@ -18,4 +18,8 @@ interface SeatDao {
 
     @Query("SELECT * FROM seats WHERE id = :id")
     suspend fun getSeatById(id: Int): Seat?
+
+    // Helper: fast count of available seats for a trip
+    @Query("SELECT COUNT(*) FROM seats WHERE tripId = :tripId AND status = :status")
+    suspend fun countSeatsByStatus(tripId: Int, status: String): Int
 }

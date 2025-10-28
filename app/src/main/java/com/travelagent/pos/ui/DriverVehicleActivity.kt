@@ -14,6 +14,7 @@ import com.travelagent.pos.data.Driver
 import com.travelagent.pos.data.Vehicle
 import com.travelagent.pos.databinding.ActivityDriverVehicleBinding
 import androidx.lifecycle.lifecycleScope
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.utils.InputValidator
 import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
@@ -76,11 +77,11 @@ class DriverVehicleActivity : AppCompatActivity() {
                 if (name.isNotEmpty() && phone.isNotEmpty()) {
                     lifecycleScope.launch {
                         db.driverDao().insert(Driver(namaSopir = name, nomorTelepon = phone))
-                        Toast.makeText(this@DriverVehicleActivity, "Sopir ditambahkan", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.showSuccess(this@DriverVehicleActivity, "Sopir ditambahkan")
                         loadData()
                     }
                 } else {
-                    Toast.makeText(this, "Isi semua field", Toast.LENGTH_SHORT).show()
+                    ErrorHandler.showError(this, "Isi semua field")
                 }
             }
             .setNegativeButton("Batal", null)
@@ -112,7 +113,7 @@ class DriverVehicleActivity : AppCompatActivity() {
                                             namaSopir = name,
                                             nomorTelepon = phone
                                         ))
-                                        Toast.makeText(this@DriverVehicleActivity, "Sopir diupdate", Toast.LENGTH_SHORT).show()
+                                        ErrorHandler.showSuccess(this@DriverVehicleActivity, "Sopir diupdate")
                                         loadData()
                                     }
                                 }
@@ -127,7 +128,7 @@ class DriverVehicleActivity : AppCompatActivity() {
                             .setPositiveButton("Hapus") { _, _ ->
                                 lifecycleScope.launch {
                                     db.driverDao().delete(driver)
-                                    Toast.makeText(this@DriverVehicleActivity, "Sopir dihapus", Toast.LENGTH_SHORT).show()
+                                    ErrorHandler.showSuccess(this@DriverVehicleActivity, "Sopir dihapus")
                                     loadData()
                                 }
                             }
@@ -184,7 +185,7 @@ class DriverVehicleActivity : AppCompatActivity() {
                         lifecycleScope.launch {
                             val formatted = InputValidator.formatPlateNumber(plate)
                             db.vehicleDao().insert(Vehicle(nomorPolisi = formatted))
-                            Toast.makeText(this@DriverVehicleActivity, "✅ Kendaraan ditambahkan", Toast.LENGTH_SHORT).show()
+                            ErrorHandler.showSuccess(this@DriverVehicleActivity, "Kendaraan ditambahkan")
                             loadData()
                         }
                     }
@@ -213,7 +214,7 @@ class DriverVehicleActivity : AppCompatActivity() {
                                 if (plate.isNotEmpty()) {
                                     lifecycleScope.launch {
                                         db.vehicleDao().update(vehicle.copy(nomorPolisi = plate))
-                                        Toast.makeText(this@DriverVehicleActivity, "Kendaraan diupdate", Toast.LENGTH_SHORT).show()
+                                        ErrorHandler.showSuccess(this@DriverVehicleActivity, "Kendaraan diupdate")
                                         loadData()
                                     }
                                 }
@@ -228,7 +229,7 @@ class DriverVehicleActivity : AppCompatActivity() {
                             .setPositiveButton("Hapus") { _, _ ->
                                 lifecycleScope.launch {
                                     db.vehicleDao().delete(vehicle)
-                                    Toast.makeText(this@DriverVehicleActivity, "Kendaraan dihapus", Toast.LENGTH_SHORT).show()
+                                    ErrorHandler.showSuccess(this@DriverVehicleActivity, "Kendaraan dihapus")
                                     loadData()
                                 }
                             }

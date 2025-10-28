@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.activity.OnBackPressedCallback
 import com.travelagent.pos.databinding.ActivityMainBinding
 import com.travelagent.pos.ui.*
 
@@ -17,6 +18,19 @@ class MainActivity : AppCompatActivity() {
 
         setupToolbar()
         setupNavigationDrawer()
+
+        // Handle back presses using OnBackPressedCallback (recommended replacement for onBackPressed)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    // temporarily disable this callback and forward the back press
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
 
         // Load initial fragment
         if (savedInstanceState == null) {
@@ -86,12 +100,4 @@ class MainActivity : AppCompatActivity() {
         loadTripListFragment()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
-    }
 }

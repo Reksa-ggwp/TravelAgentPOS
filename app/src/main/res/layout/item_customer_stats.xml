@@ -27,7 +27,7 @@
                 android:text="Nama Pelanggan"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#000000" />
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tvTier"
@@ -36,7 +36,7 @@
                 android:text="🥉 Bronze"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:background="#E0E0E0"
+                android:background="@color/lighter_gray"
                 android:padding="4dp"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp" />
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:text="Total Trip"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="@color/text_secondary" />
 
                 <TextView
                     android:id="@+id/tvTrips"
@@ -68,7 +68,7 @@
                     android:text="0 trip"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#2196F3" />
+                    android:textColor="@color/info" />
 
             </LinearLayout>
 
@@ -83,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:text="Total Belanja"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="@color/text_secondary" />
 
                 <TextView
                     android:id="@+id/tvSpent"
@@ -92,7 +92,7 @@
                     android:text="Rp 0"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#4CAF50" />
+                    android:textColor="@color/success" />
 
             </LinearLayout>
 
@@ -107,7 +107,7 @@
                     android:layout_height="wrap_content"
                     android:text="Poin"
                     android:textSize="12sp"
-                    android:textColor="#666666" />
+                    android:textColor="@color/text_secondary" />
 
                 <TextView
                     android:id="@+id/tvPoints"
@@ -116,7 +116,7 @@
                     android:text="0 poin"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="#FF9800" />
+                    android:textColor="@color/warning" />
 
             </LinearLayout>
 
@@ -125,7 +125,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#E0E0E0"
+            android:background="@color/lighter_gray"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
@@ -134,7 +134,7 @@
             android:layout_height="wrap_content"
             android:text="Terakhir Trip:"
             android:textSize="12sp"
-            android:textColor="#666666" />
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvLastTrip"
@@ -142,7 +142,7 @@
             android:layout_height="wrap_content"
             android:text="Belum ada"
             android:textSize="14sp"
-            android:textColor="#000000" />
+            android:textColor="@color/text_primary" />
 
     </LinearLayout>
 

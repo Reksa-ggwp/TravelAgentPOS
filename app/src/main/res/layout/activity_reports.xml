@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/background_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#FF5722"
+    android:padding="16dp"
+    android:background="@color/brand_orange"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -20,7 +20,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="0dp"
@@ -29,7 +29,7 @@
             android:text="Laporan"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:gravity="center" />
 
         <View
@@ -62,7 +62,7 @@
                 android:layout_height="60dp"
                 android:text="📅 Generate Laporan Hari Ini"
                 android:textSize="16sp"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="@color/success"
                 android:layout_marginBottom="24dp" />
 
             <TextView
@@ -118,7 +118,7 @@
                 android:layout_height="60dp"
                 android:text="📊 Generate Laporan Bulanan"
                 android:textSize="16sp"
-                android:backgroundTint="#2196F3"
+                android:backgroundTint="@color/info"
                 android:layout_marginBottom="24dp" />
 
             <TextView
@@ -141,7 +141,7 @@
                     android:text="Pilih jenis laporan di atas untuk generate"
                     android:textSize="14sp"
                     android:padding="16dp"
-                    android:textColor="#000000"
+                    android:textColor="@color/black"
                     android:fontFamily="monospace"
                     android:scrollbars="vertical"
                     android:scrollHorizontally="false"

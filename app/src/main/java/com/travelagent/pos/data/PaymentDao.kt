@@ -19,6 +19,13 @@ interface PaymentDao {
     @Query("SELECT SUM(amount) FROM payments WHERE ticketId = :ticketId")
     suspend fun getTotalPaid(ticketId: Int): Double?
 
+    // Helpers
+    @Query("SELECT SUM(amount) FROM payments WHERE ticketId = :ticketId")
+    suspend fun sumForTicket(ticketId: Int): Double?
+
+    @Query("SELECT SUM(p.amount) FROM payments p INNER JOIN tickets t ON p.ticketId = t.id WHERE t.tripId = :tripId")
+    suspend fun sumForTrip(tripId: Int): Double?
+
     @Query("SELECT * FROM payments ORDER BY timestamp DESC LIMIT 100")
     suspend fun getRecentPayments(): List<Payment>
 

@@ -58,7 +58,7 @@ object  ErrorHandler {
             .show()
     }
 
-    fun handleOperationError(context: Context, operation: String, error: Exception) {
+    fun handleOperationError(context: Context, operation: String, error: Throwable) {
         val message = "Gagal $operation:\n${getUserFriendlyMessage(error)}"
         MaterialAlertDialogBuilder(context)
             .setTitle("❌ Operasi Gagal")
@@ -67,10 +67,10 @@ object  ErrorHandler {
             .show()
     }
 
-    private fun getUserFriendlyMessage(error: Exception): String {
+    private fun getUserFriendlyMessage(error: Throwable): String {
         return when {
-            error.message?.contains("timeout") == true -> "Operasi memakan waktu terlalu lama"
-            error.message?.contains("permission") == true -> "Tidak memiliki izin yang diperlukan"
+            error.message?.contains("timeout", ignoreCase = true) == true -> "Operasi memakan waktu terlalu lama"
+            error.message?.contains("permission", ignoreCase = true) == true -> "Tidak memiliki izin yang diperlukan"
             else -> error.message?.take(100) ?: "Kesalahan tidak diketahui"
         }
     }

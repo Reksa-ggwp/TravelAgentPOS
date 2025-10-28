@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
-import android.widget.Toast
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.databinding.ActivityBackupRestoreBinding
 import com.travelagent.pos.utils.BackupManager
 import kotlinx.coroutines.launch
@@ -34,22 +34,14 @@ class BackupRestoreActivity : AppCompatActivity() {
                 val result = backupManager.createBackup(isAuto = false)
                 result.fold(
                     onSuccess = { file ->
-                        Toast.makeText(
-                            this@BackupRestoreActivity,
-                            "✓ Backup berhasil!\n${file.name}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showSuccess(this@BackupRestoreActivity, "Backup berhasil!\n${file.name}")
                     },
                     onFailure = { e ->
-                        Toast.makeText(
-                            this@BackupRestoreActivity,
-                            "❌ Backup gagal: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showError(this@BackupRestoreActivity, "Backup gagal: ${e.message}")
                     }
                 )
             } catch (e: Exception) {
-                Toast.makeText(this@BackupRestoreActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.showError(this@BackupRestoreActivity, "Error: ${e.message}")
             }
         }
     }
@@ -58,7 +50,7 @@ class BackupRestoreActivity : AppCompatActivity() {
         val backups = backupManager.getAllBackups()
 
         if (backups.isEmpty()) {
-            Toast.makeText(this, "Tidak ada backup tersedia", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, "Tidak ada backup tersedia")
             return
         }
 
@@ -93,23 +85,15 @@ class BackupRestoreActivity : AppCompatActivity() {
                 val result = backupManager.restoreBackup(backupInfo.file)
                 result.fold(
                     onSuccess = {
-                        Toast.makeText(
-                            this@BackupRestoreActivity,
-                            "✓ Restore berhasil!\nSilakan restart aplikasi.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showSuccess(this@BackupRestoreActivity, "Restore berhasil!\nSilakan restart aplikasi.")
                         finishAffinity()
                     },
                     onFailure = { e ->
-                        Toast.makeText(
-                            this@BackupRestoreActivity,
-                            "❌ Restore gagal: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showError(this@BackupRestoreActivity, "Restore gagal: ${e.message}")
                     }
                 )
             } catch (e: Exception) {
-                Toast.makeText(this@BackupRestoreActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.showError(this@BackupRestoreActivity, "Error: ${e.message}")
             }
         }
     }
@@ -118,7 +102,7 @@ class BackupRestoreActivity : AppCompatActivity() {
         val backups = backupManager.getAllBackups()
 
         if (backups.isEmpty()) {
-            Toast.makeText(this, "Tidak ada backup tersedia", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, "Tidak ada backup tersedia")
             return
         }
 

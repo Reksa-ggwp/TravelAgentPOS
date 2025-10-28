@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/background_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#9C27B0"
+    android:padding="16dp"
+    android:background="@color/brand_purple"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -20,7 +20,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="0dp"
@@ -60,8 +60,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Buat backup database untuk mengamankan data Anda"
-                android:textSize="14sp"
-                android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
                 android:layout_marginBottom="16dp" />
 
             <Button
@@ -70,13 +70,13 @@
                 android:layout_height="60dp"
                 android:text="💾 Buat Backup Sekarang"
                 android:textSize="16sp"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="@color/success"
                 android:layout_marginBottom="24dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="#CCCCCC"
+                android:background="@color/light_gray"
                 android:layout_marginVertical="16dp" />
 
             <TextView
@@ -92,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:text="Kembalikan database dari backup yang tersimpan"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:layout_marginBottom="16dp" />
 
             <Button
@@ -101,7 +101,7 @@
                 android:layout_height="60dp"
                 android:text="♻️ Restore dari Backup"
                 android:textSize="16sp"
-                android:backgroundTint="#FF9800"
+                android:backgroundTint="@color/warning"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -110,13 +110,13 @@
                 android:layout_height="60dp"
                 android:text="📂 Lihat Daftar Backup"
                 android:textSize="16sp"
-                android:backgroundTint="#2196F3"
+                android:backgroundTint="@color/info"
                 android:layout_marginBottom="24dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="#CCCCCC"
+                android:background="@color/light_gray"
                 android:layout_marginVertical="16dp" />
 
             <TextView
@@ -132,7 +132,7 @@
                 android:layout_height="wrap_content"
                 android:text="• Backup otomatis disimpan di penyimpanan internal\n• File backup aman dan tidak dapat diakses aplikasi lain\n• Restore akan mengganti seluruh data saat ini\n• Disarankan backup setiap hari atau sebelum update"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="4dp" />
 
         </LinearLayout>

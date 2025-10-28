@@ -1,20 +1,17 @@
 package com.travelagent.pos.ui
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.snackbar.Snackbar
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Customer
 import com.travelagent.pos.databinding.ActivityAddCustomerBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.repository.RepositoryResult
-import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.utils.InputValidator
 import com.travelagent.pos.utils.ValidationResult
 import kotlinx.coroutines.launch
-
 
 class AddCustomerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddCustomerBinding
@@ -139,18 +136,9 @@ class AddCustomerActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 binding.btnSave.isEnabled = true
                 binding.btnSave.text = "Simpan"
-                showErrorSnackbar(e.message ?: "Terjadi kesalahan")
+                ErrorHandler.handleOperationError(this@AddCustomerActivity, "menyimpan pelanggan", e)
             }
         }
     }
 
-    private fun showErrorSnackbar(message: String) {
-        Snackbar.make(
-            binding.root,
-            "❌ $message",
-            Snackbar.LENGTH_LONG
-        ).setAction("TUTUP") {
-            // Dismiss
-        }.show()
     }
-}

@@ -4,19 +4,21 @@ import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import com.travelagent.pos.utils.ErrorHandler
 import com.google.android.material.snackbar.Snackbar
 
 // Toast extensions
 fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-    Toast.makeText(this, message, duration).show()
+    // Use centralized ErrorHandler for consistent UX
+    ErrorHandler.showInfo(this, message)
 }
 
 fun Context.showSuccessToast(message: String) {
-    Toast.makeText(this, "✅ $message", Toast.LENGTH_SHORT).show()
+    ErrorHandler.showSuccess(this, message)
 }
 
 fun Context.showErrorToast(message: String) {
-    Toast.makeText(this, "❌ $message", Toast.LENGTH_LONG).show()
+    ErrorHandler.showError(this, message)
 }
 
 // Snackbar extensions

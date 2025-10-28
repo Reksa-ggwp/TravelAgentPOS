@@ -25,7 +25,7 @@ class CustomerViewModel(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    fun loadCustomers(forceRefresh: Boolean = false) {
+    fun loadCustomers() {
         viewModelScope.launch {
             try {
                 _loading.value = true

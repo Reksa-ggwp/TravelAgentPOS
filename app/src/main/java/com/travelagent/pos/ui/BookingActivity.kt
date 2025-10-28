@@ -11,11 +11,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.R
 import com.travelagent.pos.data.*
 import com.travelagent.pos.databinding.ActivityBookingBinding
 import com.travelagent.pos.repository.CustomerRepository
 import com.travelagent.pos.utils.Constants
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,10 +69,9 @@ class BookingActivity : AppCompatActivity() {
             }
 
             if (customers.isEmpty()) {
-                showMaterialDialog(
-                    "Belum Ada Pelanggan",
-                    "Silakan tambahkan pelanggan terlebih dahulu dari menu Data Pelanggan.",
-                    "OK"
+                ErrorHandler.showInfo(
+                    this@BookingActivity,
+                    "Silakan tambahkan pelanggan terlebih dahulu dari menu Data Pelanggan."
                 )
                 return@launch
             }
@@ -106,10 +107,9 @@ class BookingActivity : AppCompatActivity() {
             }
 
             if (trips.isEmpty()) {
-                showMaterialDialog(
-                    "Belum Ada Perjalanan",
-                    "Silakan tambahkan perjalanan terlebih dahulu.",
-                    "OK"
+                ErrorHandler.showInfo(
+                    this@BookingActivity,
+                    "Silakan tambahkan perjalanan terlebih dahulu."
                 )
                 return@launch
             }
@@ -254,46 +254,49 @@ class BookingActivity : AppCompatActivity() {
 
     private fun createBooking() {
         if (selectedCustomer == null || selectedTrip == null || selectedSeats.isEmpty()) {
-            Toast.makeText(this, "⚠️ Lengkapi semua pilihan", Toast.LENGTH_SHORT).show()
+            ErrorHandler.handleValidationError(this, "Lengkapi semua pilihan")
             return
         }
 
         lifecycleScope.launch {
             try {
-                val createdTicketIds = mutableListOf<Int>()
+                // Perform booking of all selected seats in a single database transaction
+                val createdTicketIds = withContext(Dispatchers.IO) {
+                    db.withTransaction {
+                        val customer = selectedCustomer!!
+                        val trip = selectedTrip!!
+                        val ids = mutableListOf<Int>()
 
-                withContext(Dispatchers.IO) {
-                    val customer = selectedCustomer!!
-                    val trip = selectedTrip!!
+                        selectedSeats.forEach { seat ->
+                            if (seat.status != com.travelagent.pos.utils.Constants.SEAT_STATUS_AVAILABLE) {
+                                throw IllegalStateException("Kursi ${seat.nomorKursi} tidak tersedia")
+                            }
 
-                    selectedSeats.forEach { seat ->
-                        // Update seat status
-                        db.seatDao().update(seat.copy(
-                            customerId = customer.id,
-                            status = Constants.SEAT_STATUS_BOOKED
-                        ))
+                            // mark seat as booked
+                            db.seatDao().update(seat.copy(customerId = customer.id, status = com.travelagent.pos.utils.Constants.SEAT_STATUS_BOOKED))
 
-                        // Create ticket
-                        val ticketId = db.ticketDao().insert(Ticket(
-                            seatId = seat.id,
-                            tripId = trip.id,
-                            customerId = customer.id,
-                            ongkos = trip.ongkos,
-                            status = Constants.TICKET_STATUS_PENDING
-                        ))
+                            // create ticket
+                            val ticketId = db.ticketDao().insert(
+                                com.travelagent.pos.data.Ticket(
+                                    seatId = seat.id,
+                                    tripId = trip.id,
+                                    customerId = customer.id,
+                                    ongkos = trip.ongkos,
+                                    status = com.travelagent.pos.utils.Constants.TICKET_STATUS_PENDING
+                                )
+                            )
 
-                        createdTicketIds.add(ticketId.toInt())
+                            ids.add(ticketId.toInt())
+                        }
+
+                        ids
                     }
                 }
 
                 showSuccessDialog(createdTicketIds)
 
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@BookingActivity,
-                    "❌ Gagal: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                ErrorHandler.handleOperationError(this@BookingActivity, "membuat booking", e)
             }
         }
     }
@@ -318,11 +321,5 @@ class BookingActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showMaterialDialog(title: String, message: String, positiveText: String) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton(positiveText, null)
-            .show()
-    }
 }
+

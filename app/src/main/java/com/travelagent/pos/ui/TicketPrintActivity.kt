@@ -2,7 +2,7 @@ package com.travelagent.pos.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
+import com.travelagent.pos.utils.ErrorHandler
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -48,7 +48,7 @@ class TicketPrintActivity : AppCompatActivity() {
         ticketId = intent.getIntExtra("ticketId", 0)
 
         if (ticketId == 0) {
-            Toast.makeText(this, "Error: Ticket ID tidak valid", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showError(this, "Ticket ID tidak valid")
             finish()
             return
         }
@@ -92,8 +92,8 @@ class TicketPrintActivity : AppCompatActivity() {
                 }
 
                 updateUI()
-            } catch (e: Exception) {
-                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                ErrorHandler.handleOperationError(this@TicketPrintActivity, "memuat tiket", e)
                 finish()
             }
         }
@@ -192,7 +192,7 @@ class TicketPrintActivity : AppCompatActivity() {
 
     private fun printTicket() {
         if (!::ticket.isInitialized) {
-            Toast.makeText(this, "Data tiket belum tersedia", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, getString(R.string.invalid_ticket_data))
             return
         }
 
@@ -210,7 +210,8 @@ class TicketPrintActivity : AppCompatActivity() {
         }
 
         binding.btnPrint.isEnabled = false
-        binding.btnPrint.text = "Printing..."
+        // FIX: Explicitly use the Activity context
+        binding.btnPrint.text = this@TicketPrintActivity.getString(R.string.printing)
 
         lifecycleScope.launch {
             try {
@@ -240,13 +241,15 @@ class TicketPrintActivity : AppCompatActivity() {
                 val result = thermalPrinter.printTicket(formattedTicket)
 
                 binding.btnPrint.isEnabled = true
-                binding.btnPrint.text = "🖨️ Print Tiket"
+                // FIX: Explicitly use the Activity context
+                binding.btnPrint.text = this@TicketPrintActivity.getString(R.string.print_tiket)
 
                 result.fold(
                     onSuccess = {
-                        Toast.makeText(this@TicketPrintActivity, "✅ Tiket berhasil dicetak!", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.showSuccess(this@TicketPrintActivity, "Tiket berhasil dicetak")
                     },
                     onFailure = { error ->
+                        ErrorHandler.handleOperationError(this@TicketPrintActivity, "mencetak tiket", error)
                         MaterialAlertDialogBuilder(this@TicketPrintActivity)
                             .setTitle("Print Failed")
                             .setMessage("Error: ${error.message}\n\nTroubleshooting:\n• Check printer is ON\n• Check paper loaded\n• Check Bluetooth connection\n• Try printer settings")
@@ -259,8 +262,9 @@ class TicketPrintActivity : AppCompatActivity() {
                 )
             } catch (e: Exception) {
                 binding.btnPrint.isEnabled = true
-                binding.btnPrint.text = "🖨️ Print Tiket"
-                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                // FIX: Explicitly use the Activity context here as well for consistency
+                binding.btnPrint.text = this@TicketPrintActivity.getString(R.string.print_tiket)
+                ErrorHandler.showError(this@TicketPrintActivity, "Error: ${e.message}")
             }
         }
     }
@@ -308,17 +312,17 @@ class TicketPrintActivity : AppCompatActivity() {
 
                 result.fold(
                     onSuccess = { file ->
-                        Toast.makeText(this@TicketPrintActivity, "✅ Exported: ${file.name}", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.showSuccess(this@TicketPrintActivity, String.format(getString(R.string.export_success), file.name))
                         exportManager.shareFile(file)
                     },
                     onFailure = { error ->
-                        Toast.makeText(this@TicketPrintActivity, "❌ Export failed: ${error.message}", Toast.LENGTH_LONG).show()
+                        ErrorHandler.handleOperationError(this@TicketPrintActivity, "export tiket", error)
                     }
                 )
             } catch (e: Exception) {
                 binding.btnExport.isEnabled = true
                 binding.btnExport.text = "📤 Export Tiket"
-                Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.handleOperationError(this@TicketPrintActivity, "export tiket", e)
             }
         }
     }
@@ -330,7 +334,7 @@ class TicketPrintActivity : AppCompatActivity() {
 
     private fun stampTicket() {
         if (ticket.isStamped) {
-            Toast.makeText(this, "Tiket sudah di-stamp", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, getString(R.string.stamped))
             return
         }
 
@@ -345,10 +349,10 @@ class TicketPrintActivity : AppCompatActivity() {
                             ticket = ticket.copy(isStamped = true)
                         }
 
-                        Toast.makeText(this@TicketPrintActivity, "✓ Tiket berhasil di-stamp", Toast.LENGTH_SHORT).show()
+                        ErrorHandler.showSuccess(this@TicketPrintActivity, getString(R.string.stamp_success))
                         updateUI()
                     } catch (e: Exception) {
-                        Toast.makeText(this@TicketPrintActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        ErrorHandler.showError(this@TicketPrintActivity, "Error: ${e.message}")
                     }
                 }
             }
@@ -358,14 +362,14 @@ class TicketPrintActivity : AppCompatActivity() {
 
     private fun showPaymentDialog() {
         if (!::ticket.isInitialized) {
-            Toast.makeText(this, "Data tiket belum tersedia", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, getString(R.string.invalid_ticket_data))
             return
         }
 
         val remaining = ticket.ongkos - ticket.totalPaid
 
         if (remaining <= 0) {
-            Toast.makeText(this, "Tiket sudah lunas", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showInfo(this, getString(R.string.ticket_paid))
             return
         }
 
@@ -398,7 +402,7 @@ class TicketPrintActivity : AppCompatActivity() {
 
     private fun processPayment(amount: Double, method: String, notes: String) {
         if (amount <= 0) {
-            Toast.makeText(this, "Jumlah pembayaran harus lebih dari 0", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, getString(R.string.amount_must_be_positive))
             return
         }
 
@@ -414,29 +418,17 @@ class TicketPrintActivity : AppCompatActivity() {
 
                 when (result) {
                     is RepositoryResult.Success -> {
-                        Toast.makeText(
-                            this@TicketPrintActivity,
-                            "✓ Pembayaran berhasil: ${formatCurrency(amount)}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        ErrorHandler.showSuccess(this@TicketPrintActivity, String.format(getString(R.string.payment_success), formatCurrency(amount)))
 
                         // Reload ticket details
                         loadTicketDetails()
                     }
                     is RepositoryResult.Failure -> {
-                        Toast.makeText(
-                            this@TicketPrintActivity,
-                            "Error: ${result.exception.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        ErrorHandler.showError(this@TicketPrintActivity, "Error: ${result.exception.message}")
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@TicketPrintActivity,
-                    "Error: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
+                ErrorHandler.showError(this@TicketPrintActivity, "Error: ${e.message}")
             }
         }
     }

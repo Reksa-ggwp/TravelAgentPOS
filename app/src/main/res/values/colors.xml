@@ -14,9 +14,16 @@
     <color name="warning_light">#FFB74D</color>
     <color name="error">#F44336</color>
     <color name="error_light">#E57373</color>
+    <color name="background_light">#F5F5F5</color>
+    <color name="cyan">#00BCD4</color>
+    <color name="whatsapp">#25D366</color>
     <color name="info">#2196F3</color>
     <color name="info_light">#64B5F6</color>
     <color name="danger">#F44336</color>
+
+    <!-- Additional brand accents discovered in layouts -->
+    <color name="brand_orange">#FF5722</color>
+    <color name="brand_purple">#9C27B0</color>
 
     <!-- Status Colors -->
     <color name="status_available">#4CAF50</color>

@@ -4,14 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="@color/background_light">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:background="#00BCD4"
+        android:background="@color/cyan"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -20,7 +20,7 @@
             android:layout_height="48dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#FFFFFF" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="0dp"
@@ -29,7 +29,7 @@
             android:text="Export Data"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:gravity="center" />
 
         <View
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:text="Export data ke format CSV (.csv)\nBisa dibuka dengan Excel atau Google Sheets"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:layout_marginBottom="16dp" />
 
             <Button
@@ -70,7 +70,7 @@
                 android:layout_height="60dp"
                 android:text="📋 Export Data Pelanggan"
                 android:textSize="16sp"
-                android:backgroundTint="#4CAF50"
+                android:backgroundTint="@color/success"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -79,7 +79,7 @@
                 android:layout_height="60dp"
                 android:text="🚌 Export Data Perjalanan"
                 android:textSize="16sp"
-                android:backgroundTint="#2196F3"
+                android:backgroundTint="@color/info"
                 android:layout_marginBottom="12dp" />
 
             <Button
@@ -88,13 +88,13 @@
                 android:layout_height="60dp"
                 android:text="🎫 Export Data Booking"
                 android:textSize="16sp"
-                android:backgroundTint="#FF9800"
+                android:backgroundTint="@color/warning"
                 android:layout_marginBottom="24dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2dp"
-                android:background="#CCCCCC"
+                android:background="@color/divider"
                 android:layout_marginVertical="16dp" />
 
             <TextView
@@ -110,7 +110,7 @@
                 android:layout_height="wrap_content"
                 android:text="File akan tersimpan di:\nDocuments/TravelAgentExports/"
                 android:textSize="14sp"
-                android:textColor="#666666"
+                android:textColor="@color/text_secondary"
                 android:lineSpacingExtra="4dp" />
 
         </LinearLayout>

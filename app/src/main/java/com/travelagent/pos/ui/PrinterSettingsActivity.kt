@@ -2,6 +2,8 @@ package com.travelagent.pos.ui
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -15,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.travelagent.pos.R
 import com.travelagent.pos.databinding.ActivityPrinterSettingsBinding
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.utils.ThermalPrinterManager
 import kotlinx.coroutines.launch
 
@@ -29,7 +32,7 @@ class PrinterSettingsActivity : AppCompatActivity() {
         if (allGranted) {
             loadPrinters()
         } else {
-            Toast.makeText(this, "Bluetooth permission required", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showError(this, "Bluetooth permission required")
         }
     }
 
@@ -68,7 +71,7 @@ class PrinterSettingsActivity : AppCompatActivity() {
                 else -> ThermalPrinterManager.PAPER_WIDTH_80MM
             }
             printerManager.setPaperWidth(width)
-            Toast.makeText(this, "Paper size saved: ${if (width == 32) "58mm" else "80mm"}", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showSuccess(this, "Paper size saved: ${if (width == 32) "58mm" else "80mm"}")
         }
     }
 
@@ -99,9 +102,10 @@ class PrinterSettingsActivity : AppCompatActivity() {
     }
 
     private fun checkBluetoothAndLoadPrinters() {
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+        val bluetoothAdapter = bluetoothManager.adapter
         if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showError(this, "Bluetooth not supported on this device")
             return
         }
 
@@ -158,7 +162,7 @@ class PrinterSettingsActivity : AppCompatActivity() {
                 val selectedPrinter = printers[which]
                 printerManager.savePrinterAddress(selectedPrinter.address)
                 binding.tvSelectedPrinter.text = "Connected: ${selectedPrinter.name}"
-                Toast.makeText(this, "Printer saved: ${selectedPrinter.name}", Toast.LENGTH_SHORT).show()
+                ErrorHandler.showSuccess(this, "Printer saved: ${selectedPrinter.name}")
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -167,26 +171,22 @@ class PrinterSettingsActivity : AppCompatActivity() {
     private fun testPrint() {
         val printerAddress = printerManager.getSavedPrinterAddress()
         if (printerAddress == null) {
-            Toast.makeText(this, "Please select a printer first", Toast.LENGTH_SHORT).show()
+            ErrorHandler.showWarning(this, "Please select a printer first")
             return
         }
 
-        binding.btnTestPrint.isEnabled = false
-        binding.btnTestPrint.text = "Printing..."
+    binding.btnTestPrint.isEnabled = false
+    binding.btnTestPrint.text = getString(R.string.printing)
 
         lifecycleScope.launch {
             val result = printerManager.testPrint(printerAddress)
 
-            binding.btnTestPrint.isEnabled = true
-            binding.btnTestPrint.text = "Test Print"
+                binding.btnTestPrint.isEnabled = true
+                binding.btnTestPrint.text = getString(R.string.test_print)
 
             result.fold(
                 onSuccess = {
-                    Toast.makeText(
-                        this@PrinterSettingsActivity,
-                        "✅ Test print successful!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    ErrorHandler.showSuccess(this@PrinterSettingsActivity, "Test print successful")
                 },
                 onFailure = { error ->
                     MaterialAlertDialogBuilder(this@PrinterSettingsActivity)

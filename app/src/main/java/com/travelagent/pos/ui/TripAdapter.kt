@@ -12,6 +12,7 @@ import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.data.Trip
 import com.travelagent.pos.databinding.ItemTripCardBinding
+import com.travelagent.pos.utils.ErrorHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,7 +25,9 @@ class TripAdapter(
     private val onItemClick: (Trip) -> Unit
 ) : RecyclerView.Adapter<TripAdapter.ViewHolder>() {
 
-    private lateinit var db: AppDatabase
+    // Lazy DB to avoid initializing on main thread repeatedly
+    private val db: AppDatabase by lazy { AppDatabase.getDatabase(contextRef) }
+    private lateinit var contextRef: android.content.Context
 
     inner class ViewHolder(private val binding: ItemTripCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -134,19 +137,11 @@ class TripAdapter(
                                             trips.removeAt(position)
                                             notifyItemRemoved(position)
                                         }
-                                        Toast.makeText(
-                                            itemView.context,
-                                            "✅ Perjalanan dihapus",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        ErrorHandler.showSuccess(itemView.context, "Perjalanan dihapus")
                                     }
                                 } catch (e: Exception) {
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(
-                                            itemView.context,
-                                            "❌ Gagal menghapus: ${e.message}",
-                                            Toast.LENGTH_LONG
-                                        ).show()
+                                        ErrorHandler.handleOperationError(itemView.context, "menghapus perjalanan", e)
                                     }
                                 }
                             }
@@ -160,7 +155,8 @@ class TripAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        db = AppDatabase.getDatabase(parent.context)
+        // Store appContext for lazy DB init and to avoid leaking Activity
+        contextRef = parent.context.applicationContext
         val binding = ItemTripCardBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
@@ -176,8 +172,22 @@ class TripAdapter(
     override fun getItemCount() = trips.size
 
     fun updateList(newList: MutableList<Trip>) {
+        // Lightweight diffing to avoid full notify
+        val oldList = trips
         trips = newList
-        notifyDataSetChanged()
+        // Fallback simple updates when sizes change a lot
+        if (oldList.isEmpty() || newList.isEmpty()) {
+            notifyDataSetChanged()
+            return
+        }
+        // Notify bounds; avoids heavy DiffUtil dependency
+        val minSize = minOf(oldList.size, newList.size)
+        for (i in 0 until minSize) notifyItemChanged(i)
+        if (newList.size > oldList.size) {
+            notifyItemRangeInserted(minSize, newList.size - oldList.size)
+        } else if (oldList.size > newList.size) {
+            notifyItemRangeRemoved(minSize, oldList.size - newList.size)
+        }
     }
 }
 

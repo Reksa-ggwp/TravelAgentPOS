@@ -59,7 +59,8 @@ class ThermalPrinterManager(private val context: Context) {
             }
         }
 
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+        val bluetoothAdapter = bluetoothManager.adapter
         return if (bluetoothAdapter != null && bluetoothAdapter.isEnabled) {
             bluetoothAdapter.bondedDevices.filter { device ->
                 device.name?.contains("printer", ignoreCase = true) == true ||
@@ -208,7 +209,6 @@ class ThermalPrinterManager(private val context: Context) {
     ): String {
         val paperWidth = getPaperWidth()
         val separator = "=".repeat(paperWidth)
-        val dashSeparator = "-".repeat(paperWidth)
 
         return buildString {
             // Header

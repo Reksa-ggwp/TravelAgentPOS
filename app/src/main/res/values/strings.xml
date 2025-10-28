@@ -15,4 +15,17 @@
 
     <!-- Content Descriptions -->
     <string name="add_customer_desc">Tambah Pelanggan</string>
+    
+    <!-- TicketPrint strings -->
+    <string name="printing">Printing...</string>
+    <string name="print_tiket">🖨️ Print Tiket</string>
+    <string name="stamped">Tiket sudah di-stamp</string>
+    <string name="stamp_success">Tiket berhasil di-stamp</string>
+    <string name="payment_success">Pembayaran berhasil: %1$s</string>
+    <string name="invalid_ticket_data">Data tiket belum tersedia</string>
+    <string name="ticket_paid">Tiket sudah lunas</string>
+    <string name="amount_must_be_positive">Jumlah pembayaran harus lebih dari 0</string>
+    <string name="export_success">Export berhasil: %1$s</string>
+    <string name="test_print">Test Print</string>
+    <string name="please_select_printer">Please select a printer first</string>
 </resources>

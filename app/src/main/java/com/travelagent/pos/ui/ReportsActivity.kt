@@ -3,7 +3,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import android.widget.ArrayAdapter
-import android.widget.Toast
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ActivityReportsBinding
 import com.travelagent.pos.utils.ReportManager
@@ -55,7 +55,7 @@ class ReportsActivity : AppCompatActivity() {
  """.trimIndent()
                 binding.tvReportResult.text = reportText
             } catch (e: Exception) {
-                Toast.makeText(this@ReportsActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.showError(this@ReportsActivity, "Error: ${e.message}")
             }
         }
     }
@@ -83,7 +83,7 @@ CustomerStatsActivity.kt (NEW)
  """.trimIndent()
                 binding.tvReportResult.text = reportText
             } catch (e: Exception) {
-                Toast.makeText(this@ReportsActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                ErrorHandler.showError(this@ReportsActivity, "Error: ${e.message}")
             }
         }
     }

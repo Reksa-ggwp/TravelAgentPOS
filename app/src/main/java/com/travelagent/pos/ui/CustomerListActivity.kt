@@ -7,7 +7,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.snackbar.Snackbar
+import com.travelagent.pos.utils.ErrorHandler
 import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
 import com.travelagent.pos.databinding.ActivityCustomerListBinding
@@ -17,6 +17,7 @@ import com.travelagent.pos.viewmodel.CustomerViewModelFactory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 
 class CustomerListActivity : AppCompatActivity() {
@@ -62,15 +63,9 @@ class CustomerListActivity : AppCompatActivity() {
                 startActivity(intent)
             },
             onDeleteSuccess = {
-                // Show success message
-                Snackbar.make(
-                    binding.root,
-                    "Pelanggan berhasil dihapus",
-                    Snackbar.LENGTH_SHORT
-                ).show()
-
-                // Reload the customer list
-                viewModel.loadCustomers(forceRefresh = true)
+                // Use centralized ErrorHandler for success message and refresh list
+                ErrorHandler.showSuccess(this, "Pelanggan berhasil dihapus")
+                viewModel.loadCustomers()
             }
         )
 
@@ -108,7 +103,7 @@ class CustomerListActivity : AppCompatActivity() {
             setOnRefreshListener {
                 // Clear search when refreshing
                 binding.etSearch.text?.clear()
-                viewModel.loadCustomers(forceRefresh = true)
+                viewModel.loadCustomers()
             }
         }
     }
@@ -160,6 +155,6 @@ class CustomerListActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadCustomers(forceRefresh = true)
+        viewModel.loadCustomers()
     }
 }

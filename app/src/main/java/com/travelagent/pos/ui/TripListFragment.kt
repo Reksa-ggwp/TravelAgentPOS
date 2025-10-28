@@ -8,6 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.travelagent.pos.R
 import com.travelagent.pos.data.AppDatabase
@@ -108,30 +113,34 @@ class TripListFragment : Fragment() {
         // Observe errors
         viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
-                android.widget.Toast.makeText(
-                    requireContext(),
-                    it,
-                    android.widget.Toast.LENGTH_LONG
-                ).show()
+                com.travelagent.pos.utils.ErrorHandler.showError(requireContext(), it)
                 viewModel.clearError()
             }
         }
     }
 
     private fun updateSummary(trips: List<com.travelagent.pos.data.Trip>) {
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            binding.tvTotalTrips.text = trips.size.toString()
-
-            // Calculate total available seats
-            val db = AppDatabase.getDatabase(requireContext())
-            var totalAvailable = 0
-
-            trips.forEach { trip ->
-                val seats = db.seatDao().getSeatsByTrip(trip.id)
-                totalAvailable += seats.count { it.status == "available" }
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Update UI elements on the main thread
+            withContext(Dispatchers.Main) {
+                binding.tvTotalTrips.text = trips.size.toString()
             }
 
-            binding.tvAvailableSeats.text = totalAvailable.toString()
+            // Calculate seats in background
+            val totalAvailable = withContext(Dispatchers.IO) {
+                val db = AppDatabase.getDatabase(requireContext())
+                var available = 0
+                trips.forEach { trip ->
+                    val seats = db.seatDao().getSeatsByTrip(trip.id)
+                    available += seats.count { it.status == "available" }
+                }
+                available
+            }
+
+            // Update UI with result on main thread
+            withContext(Dispatchers.Main) {
+                binding.tvAvailableSeats.text = totalAvailable.toString()
+            }
         }
     }
 
